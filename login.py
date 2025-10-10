@@ -22,24 +22,37 @@ def login_user():
             open_dashboard()
         else:
             messagebox.showerror(title="Invalid input", message="Invalid HR credentials, please try again")
+
     elif role == "Employee":
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
+        #Validate credentials from credentials_data
         conn = sqlite3.connect("data.db")
         cursor = conn.cursor()
-
         query = '''SELECT * FROM credentials_data WHERE Username = ? AND Password = ?'''
         cursor.execute(query, (username, hashed_password))
         result = cursor.fetchone()
         conn.close()
 
         if result:
-            messagebox.showinfo("Login Successful", f"Welcome, {username}!")
-            open_employee_dashboard()
+            #Getting employee profile from student_data
+            conn = sqlite3.connect("data.db")
+            cursor = conn.cursor()
+            query = '''SELECT Name, Age, Gender, Department FROM student_data WHERE Name = ?'''
+            cursor.execute(query, (username,))
+            profile_result = cursor.fetchone()
+            conn.close()
+
+            if profile_result:
+                employee_name, employee_age, employee_gender, employee_department = profile_result
+                messagebox.showinfo("Login Successful", f"Welcome, {employee_name}!")
+                open_employee_dashboard(employee_name, employee_age, employee_gender, employee_department)
+            else:
+                messagebox.showerror("Profile Error", "Employee profile not found.")
         else:
             messagebox.showerror("Login Failed", "Invalid username or password.")
-    else:
-        messagebox.showerror("Invalid input", "Please select a valid role.")
+
+
 
 
 #login page

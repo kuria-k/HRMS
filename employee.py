@@ -22,10 +22,19 @@ def clockin(attendance_window, username, previous_window):
     clock.geometry("350x460")
     attendance_window.withdraw()
 
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect("data.db")
+    data_insert_query = '''INSERT INTO attendance_data (User, Clockin) VALUES (?, ?)'''
+    data_insert_tuple = (username, current_time)
+    cursor = conn.cursor()
+    cursor.execute(data_insert_query, data_insert_tuple)
+    conn.commit()
+    conn.close()
+
     label_result = tk.Label(clock, text="")
     label_result.pack()
 
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     label_result.config(text=f"{username} checked in at {current_time}")
 
     back_button = tk.Button(clock, text="Back", command=lambda: confirmation(clock, previous_window))
@@ -34,17 +43,143 @@ def clockin(attendance_window, username, previous_window):
 
 def clockout(attendance_window, username, previous_window):
     clock = tk.Toplevel(attendance_window)
-    clock.title("Checkin")
+    clock.title("Checkout")
     clock.geometry("350x460")
     attendance_window.withdraw()
 
-    label_result = tk.Label(clock, text="")
-    label_result.pack()
-
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    label_result.config(text=f"{username} checked out at {current_time}")
+
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+
+    # Get the latest clock-in time for this user
+    cursor.execute("SELECT Clockin FROM attendance_data WHERE User = ? AND Clockout IS NULL ORDER BY Clockin DESC LIMIT 1", (username,))
+    result = cursor.fetchone()
+
+    if result:
+        clockin_time = datetime.strptime(result[0], "%Y-%m-%d %H:%M:%S")
+        clockout_time = datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
+        hours_worked = round((clockout_time - clockin_time).total_seconds() / 3600, 2)
+
+        # Update the row with Clockout and Hours
+        cursor.execute('''
+            UPDATE attendance_data
+            SET Clockout = ?, Hours = ?
+            WHERE User = ? AND Clockin = ?
+        ''', (current_time, hours_worked, username, result[0]))
+
+        conn.commit()
+
+        label_result = tk.Label(clock, text=f"{username} checked out at {current_time}\nTotal hours: {hours_worked}")
+        label_result.pack(pady=20)
+    else:
+        label_result = tk.Label(clock, text="No active check-in found.")
+        label_result.pack(pady=20)
+
+    conn.close()
 
     back_button = tk.Button(clock, text="Back", command=lambda: confirmation(clock, previous_window))
+    back_button.pack(pady=20)
+
+
+def review(attendance_window, username):
+    view = tk.Toplevel(attendance_window)
+    view.title("Review")
+    view.geometry("350x470")
+    attendance_window.withdraw()
+
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+
+    # Get all attendance records for the user
+    query = '''SELECT Clockin, Clockout, Hours FROM attendance_data WHERE User = ?'''
+    cursor.execute(query, (username,))
+    records = cursor.fetchall()
+
+    conn.close()
+
+    # Display records
+    if records:
+        for record in records:
+            clockin, clockout, hours = record
+            entry = f"User: {username}\nClockin: {clockin}\nClockout: {clockout}\nHours: {hours}\n"
+            label = tk.Label(view, text=entry, justify="left", anchor="w")
+            label.pack(pady=5, padx=10, anchor="w")
+    else:
+        label = tk.Label(view, text="No attendance records found.")
+        label.pack(pady=20)
+
+    back_button = tk.Button(view, text="Back", command=lambda: go_back(view, attendance_window))
+    back_button.pack(pady=20)
+
+
+
+
+def contact(attendance_window, username):
+    info = tk.Toplevel(attendance_window)
+    info.title("Contact")
+    info.geometry("350x460")
+    attendance_window.withdraw()
+
+    # Create table
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    table_create_query = '''
+    CREATE TABLE IF NOT EXISTS contact_data ( User TEXT, Contact TEXT, Email TEXT, Backup TEXT)'''
+    cursor.execute(table_create_query)
+    conn.commit()
+    conn.close()
+
+    # Form fields
+    contact_label = tk.Label(info, text="Contact", pady=5) 
+    contact_label.pack() 
+    contact_entry = tk.Entry(info, width=30) 
+    contact_entry.pack() 
+    email_label = tk.Label(info, text="Email", pady=5) 
+    email_label.pack() 
+    email_entry = tk.Entry(info, width=30) 
+    email_entry.pack() 
+    backup_label = tk.Label(info, text="Backup", pady=5) 
+    backup_label.pack() 
+    backup_entry = tk.Entry(info, width=30) 
+    backup_entry.pack()
+
+    def save_contact():
+        contact = contact_entry.get()
+        email = email_entry.get()
+        backup = backup_entry.get()
+
+        conn = sqlite3.connect("data.db")
+        cursor = conn.cursor()
+
+        # Check if user already has a record
+        cursor.execute("SELECT * FROM contact_data WHERE User = ?", (username,))
+        existing = cursor.fetchone()
+
+        if existing:
+            # Update existing record
+            cursor.execute('''
+                UPDATE contact_data
+                SET Contact = ?, Email = ?, Backup = ?
+                WHERE User = ?
+            ''', (contact, email, backup, username))
+        else:
+            # Insert new record
+            cursor.execute('''
+                INSERT INTO contact_data (User, Contact, Email, Backup)
+                VALUES (?, ?, ?, ?)
+            ''', (username, contact, email, backup))
+
+        conn.commit()
+        conn.close()
+
+        tk.Label(info, text="Contact info saved!", fg="green").pack(pady=10)
+
+    submit_button = tk.Button(info, width=25, text="Submit", bg="#87CEEB", fg="white", activebackground="#00BFFF", activeforeground="white",command=save_contact)
+    submit_button.pack(pady=10)
+   
+
+    back_button = tk.Button(info, text="Back", command=lambda: go_back(info, attendance_window))
     back_button.pack(pady=20)
 
 
@@ -56,12 +191,12 @@ def attendance(dashboard_window, employee_name,):
     dashboard_window.withdraw()
 
 
-
     # Table creation on db
     conn = sqlite3.connect("data.db")
-    table_create_query = '''CREATE TABLE IF NOT EXISTS attendance_data (User TEXT, Clockin TEXT, Clockout TEXT)'''
+    table_create_query = '''CREATE TABLE IF NOT EXISTS attendance_data (User TEXT, Clockin TEXT, Clockout TEXT, Hours REAL )'''
     conn.execute(table_create_query)
     conn.close()
+
 
     welcome_label = tk.Label(attend, text="Add Employee Details", font=("Arial", 14))
     welcome_label.pack(pady=20)
@@ -72,7 +207,7 @@ def attendance(dashboard_window, employee_name,):
     checkout_button = tk.Button(attend, text="Check out", command=lambda: clockout(attend, employee_name, attend))
     checkout_button.pack(pady=25)
 
-    review_button = tk.Button(attend, text="Review attendance")
+    review_button = tk.Button(attend, text="Review attendance", command=lambda: review(attend, employee_name))
     review_button.pack(pady=25)
 
 def profile(dashboard_window, employee_name, employee_age, employee_gender, employee_department):
@@ -134,5 +269,12 @@ def open_employee_dashboard(employee_name, employee_age, employee_gender, employ
     apply_leave_button = tk.Button(dashboard, text="APPLY LEAVE")
     apply_leave_button.pack(pady=10)
 
+    contact_button = tk.Button(dashboard, text="CONTACT INFO", command=lambda: contact(dashboard, employee_name))
+    contact_button.pack(pady=10)
+
+
     back_button = tk.Button(dashboard, text="Logout", command=lambda: confirmation(dashboard, logins))
     back_button.pack(pady=20)
+
+
+    

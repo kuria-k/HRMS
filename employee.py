@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
 from main import logins
@@ -210,6 +211,9 @@ def attendance(dashboard_window, employee_name,):
     review_button = tk.Button(attend, text="Review attendance", command=lambda: review(attend, employee_name))
     review_button.pack(pady=25)
 
+    back_button = tk.Button(attend, text="Back", command=lambda: confirmation(attend, dashboard_window))
+    back_button.pack(pady=20)
+
 def profile(dashboard_window, employee_name, employee_age, employee_gender, employee_department):
     prof = tk.Toplevel(dashboard_window)
     prof.title("Profile")
@@ -241,6 +245,192 @@ def profile(dashboard_window, employee_name, employee_age, employee_gender, empl
     else:
         tk.Label(prof, text="No matching profile found.").pack(pady=10)
 
+    back_button = tk.Button(prof, text="Back", command=lambda: confirmation(prof, dashboard_window))
+    back_button.pack(pady=20)
+
+
+def leave(attendance_window, username):
+    apply = tk.Toplevel(attendance_window)
+    apply.title("Leave Application")
+    apply.geometry("360x500")
+    apply.configure(bg="white")
+    attendance_window.withdraw()
+
+    # Title
+    welcome_label = tk.Label(apply, text="Leave Application", font=("Arial", 16, "bold"), bg="white")
+    welcome_label.pack(pady=15)
+
+    # Leave Type
+    leave_type_label = tk.Label(apply, text="Leave Type", bg="white")
+    leave_type_label.pack(pady=(10, 2))
+
+    leave_types = [
+        "Annual Leave",
+        "Sick Leave",
+        "Maternity Leave",
+        "Paternity Leave",
+        "Compassionate Leave",
+        "Study Leave",
+        "Unpaid Leave"
+    ]
+    leave_type_combo = ttk.Combobox(apply, values=leave_types, state="readonly", width=30)
+    leave_type_combo.set("-- Select Leave Type --")
+    leave_type_combo.pack(pady=5)
+
+    # Leave From
+    date_from_label = tk.Label(apply, text="Leave From (YYYY-MM-DD)", bg="white")
+    date_from_label.pack(pady=(15, 2))
+    date_from_entry = tk.Entry(apply, width=32)
+    date_from_entry.pack(pady=5)
+
+    # Leave To
+    date_to_label = tk.Label(apply, text="Leave To (YYYY-MM-DD)", bg="white")
+    date_to_label.pack(pady=(15, 2))
+    date_to_entry = tk.Entry(apply, width=32)
+    date_to_entry.pack(pady=5)
+
+    # Purpose
+    purpose_label = tk.Label(apply, text="Purpose", bg="white")
+    purpose_label.pack(pady=(15, 2))
+    purpose_entry = tk.Entry(apply, width=32)
+    purpose_entry.pack(pady=5)
+
+    # Leave Period
+    period_label = tk.Label(apply, text="Leave Period", bg="white")
+    period_label.pack(pady=(15, 2))
+    leave_period = [
+        "Jan 1 2024 - Dec 31 2024",
+        "Jan 1 2025 - Dec 31 2025"
+    ]
+    period_combo = ttk.Combobox(apply, values=leave_period, state="readonly", width=30)
+    period_combo.set("-- Select Leave Period --")
+    period_combo.pack(pady=5)
+
+    # Submit Button
+    def submit_leave():
+        leave_type = leave_type_combo.get()
+        date_from = date_from_entry.get()
+        date_to = date_to_entry.get()
+        purpose = purpose_entry.get()
+        period = period_combo.get()
+
+        print(f"{username} applied for {leave_type} from {date_from} to {date_to} for '{purpose}' during {period}")
+        
+        # Table creation on db
+        conn = sqlite3.connect("data.db")
+        table_create_query = '''CREATE TABLE IF NOT EXISTS leave_data (Name TEXT, Type TEXT, FromDate TEXT, ToDate TEXT, Purpose TEXT, Period TEXT)''' 
+        conn.execute(table_create_query)
+        conn.commit()
+        conn.close()
+
+        # Data rendering on db
+        conn = sqlite3.connect("data.db")
+        data_insert_query = '''INSERT INTO leave_data (Name, Type, FromDate, ToDate, Purpose, Period)VALUES(?,?,?,?,?,?)'''
+        data_insert_tuple = (username, leave_type, date_from, date_to, purpose, period)
+        cursor= conn.cursor()
+        cursor.execute(data_insert_query, data_insert_tuple)
+        conn.commit()
+
+    submit_button = tk.Button(
+        apply, text="Submit", width=25,
+        bg="#87CEEB", fg="white",
+        activebackground="#00BFFF", activeforeground="white",
+        command=submit_leave
+    )
+    submit_button.pack(pady=20)
+
+    # Back Button
+    back_button = tk.Button(apply, text="Back", width=15, command=lambda: confirmation(apply, attendance_window))
+    back_button.pack(pady=5)
+
+
+
+def feedback(main_window, username):
+    fb = tk.Toplevel(main_window)
+    fb.title("Feedback Form")
+    fb.geometry("360x520")
+    fb.configure(bg="white")
+    main_window.withdraw()
+
+    # Title
+    title_label = tk.Label(fb, text="Feedback Form", font=("Arial", 16, "bold"), bg="white")
+    title_label.pack(pady=15)
+
+    # Name
+    name_label = tk.Label(fb, text="Your Name", bg="white")
+    name_label.pack(pady=(10, 2))
+    name_entry = tk.Entry(fb, width=32)
+    name_entry.insert(0, username)
+    name_entry.pack(pady=5)
+
+    # Department
+    dept_label = tk.Label(fb, text="Department", bg="white")
+    dept_label.pack(pady=(10, 2))
+    dept_entry = tk.Entry(fb, width=32)
+    dept_entry.pack(pady=5)
+
+    # Experience Rating
+    rating_label = tk.Label(fb, text="Overall Experience", bg="white")
+    rating_label.pack(pady=(10, 2))
+    ratings = ["Excellent", "Good", "Fair", "Poor"]
+    rating_combo = ttk.Combobox(fb, values=ratings, state="readonly", width=30)
+    rating_combo.set("-- Select Rating --")
+    rating_combo.pack(pady=5)
+
+    # Comments
+    comments_label = tk.Label(fb, text="Comments / Suggestions", bg="white")
+    comments_label.pack(pady=(10, 2))
+    comments_entry = tk.Text(fb, width=32, height=5)
+    comments_entry.pack(pady=5)
+
+    # Contact Preference
+    contact_label = tk.Label(fb, text="Would you like to be contacted?", bg="white")
+    contact_label.pack(pady=(10, 2))
+    contact_var = tk.StringVar()
+    contact_combo = ttk.Combobox(fb, values=["Yes", "No"], textvariable=contact_var, state="readonly", width=30)
+    contact_combo.set("-- Select Option --")
+    contact_combo.pack(pady=5)
+
+    contact_info_label = tk.Label(fb, text="Email or Phone (if Yes)", bg="white")
+    contact_info_label.pack(pady=(10, 2))
+    contact_info_entry = tk.Entry(fb, width=32)
+    contact_info_entry.pack(pady=5)
+
+    # Submit Feedback
+    def submit_feedback():
+        name = name_entry.get()
+        dept = dept_entry.get()
+        rating = rating_combo.get()
+        comments = comments_entry.get("1.0", tk.END).strip()
+        contact = contact_combo.get()
+        contact_info = contact_info_entry.get()
+        
+        # Table creation on db
+        conn = sqlite3.connect("data.db")
+        table_create_query = '''CREATE TABLE IF NOT EXISTS feedback_data(Name TEXT, Department TEXT, Ratings TEXT, Comments TEXT, Contact TEXT, Info TEXT)'''
+        conn.execute(table_create_query)
+        conn.commit()
+        conn.close()
+
+        # Data rendering on db
+        conn = sqlite3.connect("data.db")
+        data_insert_query = '''INSERT INTO feedback_data (Name, Department, Ratings, Comments, Contact, Info)VALUES(?,?,?,?,?,?)'''
+        data_insert_tuple = (name,  dept, rating, comments, contact, contact_info)
+        cursor = conn.cursor()
+        cursor.execute(data_insert_query, data_insert_tuple)
+        conn.commit()
+        conn.close()
+
+        print("Feedback submitted successfully!")
+
+    submit_btn = tk.Button(fb, text="Submit", width=25, bg="#87CEEB", fg="white",activebackground="#00BFFF", activeforeground="white",command=submit_feedback)
+    submit_btn.pack(pady=20)
+
+    # Back Button
+    back_btn = tk.Button(fb, text="Back", width=15, command=lambda: confirmation(fb, main_window))
+    back_btn.pack(pady=5)
+
+
 # Function to open employee dashboard
 def open_employee_dashboard(employee_name, employee_age, employee_gender, employee_department):
     dashboard = tk.Toplevel(logins)
@@ -263,10 +453,10 @@ def open_employee_dashboard(employee_name, employee_age, employee_gender, employ
     view_report_button = tk.Button(dashboard, text="VIEW PAYSLIP")
     view_report_button.pack(pady=10)
 
-    feedback_button = tk.Button(dashboard, text="FEEDBACK FORM")
+    feedback_button = tk.Button(dashboard, text="FEEDBACK FORM", command=lambda:feedback(dashboard, employee_name))
     feedback_button.pack(pady=10)
 
-    apply_leave_button = tk.Button(dashboard, text="APPLY LEAVE")
+    apply_leave_button = tk.Button(dashboard, text="APPLY LEAVE",  command=lambda: leave(dashboard, employee_name))
     apply_leave_button.pack(pady=10)
 
     contact_button = tk.Button(dashboard, text="CONTACT INFO", command=lambda: contact(dashboard, employee_name))

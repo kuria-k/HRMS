@@ -217,37 +217,39 @@ def attendance(dashboard_window, employee_name,):
 def profile(dashboard_window, employee_name, employee_age, employee_gender, employee_department):
     prof = tk.Toplevel(dashboard_window)
     prof.title("Profile")
-    prof.geometry("350x460")
+    prof.geometry("360x300")
+    prof.configure(bg="white")
     dashboard_window.withdraw()
 
-    welcome_label = tk.Label(prof, text="Employee Profile", font=("Arial", 14))
-    welcome_label.pack(pady=20)
+    # Title
+    welcome_label = tk.Label(prof, text="Employee Profile", font=("Arial", 16, "bold"), bg="white")
+    welcome_label.pack(pady=15)
 
     # Connect to database
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
 
-    # Query for matching employee
     query = '''SELECT Name, Age, Gender, Department FROM student_data 
                WHERE Name = ? AND Age = ? AND Gender = ? AND Department = ?'''
     cursor.execute(query, (employee_name, employee_age, employee_gender, employee_department))
     result = cursor.fetchone()
-
     conn.close()
 
-    # Display result
+    # Table Frame
+    table_frame = tk.Frame(prof, bg="white")
+    table_frame.pack(pady=10)
+
     if result:
-        name, age, gender, department = result
-        tk.Label(prof, text=f"Name: {name}").pack(pady=5)
-        tk.Label(prof, text=f"Age: {age}").pack(pady=5)
-        tk.Label(prof, text=f"Gender: {gender}").pack(pady=5)
-        tk.Label(prof, text=f"Department: {department}").pack(pady=5)
+        fields = ["Name", "Age", "Gender", "Department"]
+        for i, field in enumerate(fields):
+            tk.Label(table_frame, text=field + ":", font=("Arial", 12, "bold"), bg="white", anchor="w", width=12).grid(row=i, column=0, padx=10, pady=5, sticky="w")
+            tk.Label(table_frame, text=result[i], font=("Arial", 12), bg="white", anchor="w", width=20).grid(row=i, column=1, padx=10, pady=5, sticky="w")
     else:
-        tk.Label(prof, text="No matching profile found.").pack(pady=10)
+        tk.Label(prof, text="No matching profile found.", font=("Arial", 12), bg="white").pack(pady=10)
 
-    back_button = tk.Button(prof, text="Back", command=lambda: confirmation(prof, dashboard_window))
+    # Back Button
+    back_button = tk.Button(prof, text="Back", width=15, command=lambda: confirmation(prof, dashboard_window))
     back_button.pack(pady=20)
-
 
 def leave(attendance_window, username):
     apply = tk.Toplevel(attendance_window)

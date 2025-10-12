@@ -11,6 +11,48 @@ def go_back(current_window, previous_window):
     current_window.destroy()
     previous_window.deiconify()
 
+def confirmation(current_window, previous_window):
+    result = messagebox.askyesno(title="Logout" , message="Are you sure you want to log out?")
+    if result:
+        go_back(current_window, previous_window)
+
+def profile(dashboard_window, employee_name, employee_age, employee_gender, employee_department):
+    prof = tk.Toplevel(dashboard_window)
+    prof.title("Profile")
+    prof.geometry("360x300")
+    prof.configure(bg="white")
+    dashboard_window.withdraw()
+
+    # Title
+    welcome_label = tk.Label(prof, text="Employee Profile", font=("Arial", 16, "bold"), bg="white")
+    welcome_label.pack(pady=15)
+
+    # Connect to database
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+
+    query = '''SELECT Name, Age, Gender, Department FROM student_data 
+               WHERE Name = ? AND Age = ? AND Gender = ? AND Department = ?'''
+    cursor.execute(query, (employee_name, employee_age, employee_gender, employee_department))
+    result = cursor.fetchone()
+    conn.close()
+
+    # Table Frame
+    table_frame = tk.Frame(prof, bg="white")
+    table_frame.pack(pady=10)
+
+    if result:
+        fields = ["Name", "Age", "Gender", "Department"]
+        for i, field in enumerate(fields):
+            tk.Label(table_frame, text=field + ":", font=("Arial", 12, "bold"), bg="white", anchor="w", width=12).grid(row=i, column=0, padx=10, pady=5, sticky="w")
+            tk.Label(table_frame, text=result[i], font=("Arial", 12), bg="white", anchor="w", width=20).grid(row=i, column=1, padx=10, pady=5, sticky="w")
+    else:
+        tk.Label(prof, text="No matching profile found.", font=("Arial", 12), bg="white").pack(pady=10)
+
+    # Back Button
+    back_button = tk.Button(prof, text="Back", width=15, command=lambda: confirmation(prof, dashboard_window))
+    back_button.pack(pady=20)
+
 def memo(dashboard_window):
     memo_window = tk.Toplevel(logins)
     memo_window.title("Upload Memo")
@@ -204,6 +246,9 @@ def open_dashboard():
 
     add_report_button = tk.Button(dashboard, text="ADD REPORT")
     add_report_button.pack(pady=10)
+
+    view_profile_button = tk.Button(dashboard, text="VIEW EMPLOYEES" , command=lambda: profile(dashboard))
+    view_profile_button.pack(pady=10)
 
     back_button = tk.Button(dashboard, text="Logout", command=lambda: go_back(dashboard, logins))
     back_button.pack(pady=20)

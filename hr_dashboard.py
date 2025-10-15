@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import filedialog, ttk
 from main import logins
+import os
+import webbrowser
+import shutil
 import sqlite3
 from tkinter import messagebox
 import hashlib
@@ -18,9 +21,114 @@ def confirmation(current_window, previous_window):
     if result:
         go_back(current_window, previous_window)
 
-import tkinter as tk
-from tkinter import ttk
-import sqlite3
+def review(attendance_window, username):
+    view = tk.Toplevel(attendance_window)
+    view.title("Attendance Review")
+    view.geometry("450x400")
+    attendance_window.withdraw()
+
+    # Title
+    title_label = tk.Label(view, text=f"Attendance for Employees", font=("Arial", 16, "bold"))
+    title_label.pack(pady=10)
+
+    # # Frame for table
+    table_frame = tk.Frame(view)
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    # # Scrollbar
+    scrollbar = ttk.Scrollbar(table_frame)
+    scrollbar.pack(side="right", fill="y")
+
+    # # Treeview widget
+    tree = ttk.Treeview(table_frame, columns=("User", "Clockin", "Clockout", "Hours"), show="headings", yscrollcommand=scrollbar.set)
+    tree.pack(fill="both", expand=True)
+
+    scrollbar.config(command=tree.yview)
+
+    # # Define column headings
+    tree.heading("User", text="User")
+    tree.heading("Clockin", text="Clock In")
+    tree.heading("Clockout", text="Clock Out")
+    tree.heading("Hours", text="Hours Worked")
+
+    # # Set column widths
+    tree.column("User", width=120)
+    tree.column("Clockin", width=120)
+    tree.column("Clockout", width=120)
+    tree.column("Hours", width=100)
+
+    # Fetch attendance records
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT User, Clockin, Clockout, Hours FROM attendance_data")
+    results = cursor.fetchall()
+    conn.close()
+
+    # # Insert records into table
+    for result in results:
+        tree.insert("", "end", values=result)
+
+    # Back button
+    back_button = tk.Button(view, text="Back", width=15, command=lambda: go_back(view, attendance_window))
+    back_button.pack(pady=10)
+
+
+def leave(attendance_window, username):
+    application = tk.Toplevel(attendance_window)
+    application.title("Attendance Review")
+    application.geometry("450x400")
+    attendance_window.withdraw()
+
+    # Title
+    title_label = tk.Label(application, text=f"Leave Applications", font=("Arial", 16, "bold"))
+    title_label.pack(pady=10)
+
+    # # Frame for table
+    table_frame = tk.Frame(application)
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    # # Scrollbar
+    scrollbar = ttk.Scrollbar(table_frame)
+    scrollbar.pack(side="right", fill="y")
+
+    # # Treeview widget
+    tree = ttk.Treeview(table_frame, columns=("Name", "Type", "From", "To", "Purpose", "Period"), show="headings", yscrollcommand=scrollbar.set)
+    tree.pack(fill="both", expand=True)
+
+    scrollbar.config(command=tree.yview)
+
+    # # Define column headings
+    tree.heading("Name", text="User")
+    tree.heading("Type", text="Type")
+    tree.heading("From", text="From")
+    tree.heading("To", text="To")
+    tree.heading("Purpose", text="Purpose")
+    tree.heading("Period", text="Period")
+
+    # # Set column widths
+    tree.column("Name", width=120)
+    tree.column("Type", width=120)
+    tree.column("From", width=120)
+    tree.column("To", width=100)
+    tree.column("Purpose", width=120)
+    tree.column("Period", width=120)
+
+    # Fetch attendance records
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT Name, Type, FromDate, ToDate, Purpose, Period FROM leave_data")
+    results = cursor.fetchall()
+    conn.close()
+
+    # # Insert records into table
+    for result in results:
+        tree.insert("", "end", values=result)
+
+    # Back button
+    back_button = tk.Button(application, text="Back", width=15, command=lambda: go_back(application, attendance_window))
+    back_button.pack(pady=10)
+
+
 
 def profile(dashboard_window):
     prof = tk.Toplevel(dashboard_window)
@@ -73,35 +181,41 @@ def profile(dashboard_window):
     back_button.pack(pady=10)
 
 
-
 def memo(dashboard_window):
     memo_window = tk.Toplevel(logins)
     memo_window.title("Upload Memo")
     memo_window.geometry("400x500")
     dashboard_window.withdraw()
 
-    title_label = tk.Label(memo_window, text="Upload a Memo File", font=("Arial", 14))
+    title_label = tk.Label(memo_window, text="Upload a PDF Memo File", font=("Arial", 14))
     title_label.pack(pady=20)
 
     file_path = filedialog.askopenfilename(
-        title="Select a file",
-        filetypes=[("All Files", "*.*"), ("Text Files", "*.txt"), ("CSV Files", "*.csv")]
+        title="Select a PDF file",
+        filetypes=[("PDF Files", "*.pdf")]
     )
 
     if file_path:
-        file_label = tk.Label(memo_window, text=f"File selected:\n{file_path}", wraplength=350, justify="left")
+        filename = os.path.basename(file_path)
+        file_label = tk.Label(memo_window, text=f"File selected:\n{filename}", wraplength=350, justify="left")
         file_label.pack(pady=10)
 
-        with open(file_path, 'r') as file:
-            content = file.read()
+        # Save the uploaded PDF to a local folder
+        destination_folder = "uploaded_memos"
+        os.makedirs(destination_folder, exist_ok=True)
+        destination_path = os.path.join(destination_folder, filename)
+        shutil.copy(file_path, destination_path)
 
-        preview_label = tk.Label(memo_window, text="File Preview:", font=("Arial", 12, "bold"))
-        preview_label.pack(pady=5)
+        confirm_label = tk.Label(memo_window, text="Memo uploaded successfully!", fg="green", font=("Arial", 11))
+        confirm_label.pack(pady=5)
 
-        preview_text = tk.Text(memo_window, height=15, width=45)
-        preview_text.insert(tk.END, content[:500])
-        preview_text.config(state=tk.DISABLED)
-        preview_text.pack(pady=10)
+        # Button to open the folder where the PDF was saved
+        def open_folder():
+            webbrowser.open(destination_folder)
+
+        open_button = tk.Button(memo_window, text="Open Uploaded Memos Folder", command=open_folder)
+        open_button.pack(pady=10)
+
     else:
         no_file_label = tk.Label(memo_window, text="No file selected.", fg="red")
         no_file_label.pack(pady=10)
@@ -249,7 +363,7 @@ def adding(dashboard_window):
 
 
 
-def open_dashboard():
+def open_dashboard(username):
     dashboard = tk.Toplevel(logins)
     dashboard.title("HR Dashboard")
     dashboard.geometry("350x450")
@@ -272,6 +386,13 @@ def open_dashboard():
 
     view_profile_button = tk.Button(dashboard, text="VIEW EMPLOYEES" , command=lambda: profile(dashboard))
     view_profile_button.pack(pady=10)
+
+    view_att_button = tk.Button(dashboard, text="ATTENDANCE REVIEW" , command=lambda: review(dashboard, username))
+    view_att_button.pack(pady=10)
+
+    leave_application_button = tk.Button(dashboard, text="LEAVE APPLICATIONS" , command=lambda: leave(dashboard, username))
+    leave_application_button.pack(pady=10)
+
 
     back_button = tk.Button(dashboard, text="Logout", command=lambda: go_back(dashboard, logins))
     back_button.pack(pady=20)

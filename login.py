@@ -21,7 +21,7 @@ def login_user():
     if role == "HR":
         if username == "ADMIN" and password == "12345":
             messagebox.showinfo(title="Login success", message="You have been successfully logged in")
-            open_dashboard()
+            open_dashboard(username)
         else:
             messagebox.showerror(title="Invalid input", message="Invalid HR credentials, please try again")
 

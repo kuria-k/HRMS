@@ -82,11 +82,6 @@ def clockout(attendance_window, username, previous_window):
     back_button = tk.Button(clock, text="Back", command=lambda: confirmation(clock, previous_window))
     back_button.pack(pady=20)
 
-
-import tkinter as tk
-from tkinter import ttk
-import sqlite3
-
 def review(attendance_window, username):
     view = tk.Toplevel(attendance_window)
     view.title("Attendance Review")
@@ -333,37 +328,42 @@ def leave(attendance_window, username):
     period_combo.pack(pady=5)
 
     # Submit Button
+    import tkinter.messagebox as messagebox
+
     def submit_leave():
-        leave_type = leave_type_combo.get()
-        date_from = date_from_entry.get()
-        date_to = date_to_entry.get()
-        purpose = purpose_entry.get()
-        period = period_combo.get()
+      leave_type = leave_type_combo.get()
+      date_from = date_from_entry.get()
+      date_to = date_to_entry.get()
+      purpose = purpose_entry.get()
+      period = period_combo.get()
 
-        print(f"{username} applied for {leave_type} from {date_from} to {date_to} for '{purpose}' during {period}")
-        
-        # Table creation on db
-        conn = sqlite3.connect("data.db")
-        table_create_query = '''CREATE TABLE IF NOT EXISTS leave_data (Name TEXT, Type TEXT, FromDate TEXT, ToDate TEXT, Purpose TEXT, Period TEXT)''' 
-        conn.execute(table_create_query)
-        conn.commit()
-        conn.close()
+      print(f"{username} applied for {leave_type} from {date_from} to {date_to} for '{purpose}' during {period}")
+    
+    # Table creation on db
+      conn = sqlite3.connect("data.db")
+      table_create_query = '''CREATE TABLE IF NOT EXISTS leave_data (Name TEXT, Type TEXT, FromDate TEXT, ToDate TEXT, Purpose TEXT, Period TEXT)''' 
+      conn.execute(table_create_query)
+      conn.commit()
+      conn.close()
 
-        # Data rendering on db
-        conn = sqlite3.connect("data.db")
-        data_insert_query = '''INSERT INTO leave_data (Name, Type, FromDate, ToDate, Purpose, Period)VALUES(?,?,?,?,?,?)'''
-        data_insert_tuple = (username, leave_type, date_from, date_to, purpose, period)
-        cursor= conn.cursor()
-        cursor.execute(data_insert_query, data_insert_tuple)
-        conn.commit()
+    # Data rendering on db
+      conn = sqlite3.connect("data.db")
+      data_insert_query = '''INSERT INTO leave_data (Name, Type, FromDate, ToDate, Purpose, Period)VALUES(?,?,?,?,?,?)'''
+      data_insert_tuple = (username, leave_type, date_from, date_to, purpose, period)
+      cursor = conn.cursor()
+      cursor.execute(data_insert_query, data_insert_tuple)
+      conn.commit()
+      conn.close()
 
-    submit_button = tk.Button(
-        apply, text="Submit", width=25,
-        bg="#87CEEB", fg="white",
-        activebackground="#00BFFF", activeforeground="white",
-        command=submit_leave
-    )
-    submit_button.pack(pady=20)
+    # Show confirmation message
+      messagebox.showinfo("Leave Submitted", "Your leave application has been successfully submitted.")
+
+    # Go back to previous page 
+      apply.destroy()
+
+    # Submit button
+    
+
 
     # Back Button
     back_button = tk.Button(apply, text="Back", width=15, command=lambda: confirmation(apply, attendance_window))

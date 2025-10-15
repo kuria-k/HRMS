@@ -58,7 +58,7 @@ def review(attendance_window, username):
     tree.column("Hours", width=100)
 
     # Fetch attendance records
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
     cursor.execute("SELECT User, Clockin, Clockout, Hours FROM attendance_data")
     results = cursor.fetchall()
@@ -114,7 +114,7 @@ def leave(attendance_window, username):
     tree.column("Period", width=120)
 
     # Fetch attendance records
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
     cursor.execute("SELECT Name, Type, FromDate, ToDate, Purpose, Period FROM leave_data")
     results = cursor.fetchall()
@@ -166,7 +166,7 @@ def profile(dashboard_window):
     tree.column("Department", width=120)
 
     # Fetch data from database
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
     cursor.execute("SELECT Name, Age, Gender, Department FROM student_data")
     results = cursor.fetchall()
@@ -177,7 +177,7 @@ def profile(dashboard_window):
         tree.insert("", "end", values=row)
 
     # Back button
-    back_button = tk.Button(prof, text="Back", width=15, command=lambda: confirmation(prof, dashboard_window))
+    back_button = tk.Button(prof, text="Back", width=15, command=lambda: go_back(prof, dashboard_window))
     back_button.pack(pady=10)
 
 
@@ -246,8 +246,8 @@ def create(dashboard_window):
     back_button.pack(pady=10)
 
     # Create table if not exists
-    conn = sqlite3.connect("data.db")
-    table_create_query = '''CREATE TABLE IF NOT EXISTS credentials_data (Username TEXT, Password TEXT)'''
+    conn = sqlite3.connect("datas.db")
+    table_create_query = '''CREATE TABLE IF NOT EXISTS credentials_data (id INTEGER PRIMARY KEY AUTOINCREMENT, Username TEXT, Password TEXT)'''
     conn.execute(table_create_query)
     conn.commit()
     conn.close()
@@ -267,7 +267,7 @@ def create(dashboard_window):
 
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-        conn = sqlite3.connect("data.db")
+        conn = sqlite3.connect("datas.db")
         data_insert_query = '''INSERT INTO credentials_data (Username, Password) VALUES (?, ?)'''
         data_insert_tuple = (username, hashed_password)
         conn.execute(data_insert_query, data_insert_tuple)
@@ -317,9 +317,9 @@ def adding(dashboard_window):
     department_entry.pack()
 
     # Create table if not exists
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect("datas.db")
     table_create_query = '''CREATE TABLE IF NOT EXISTS student_data
-    (Name TEXT, Age INT, Gender TEXT, Department TEXT)'''
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Age INT, Gender TEXT, Department TEXT)'''
     conn.execute(table_create_query)
     conn.close()
 
@@ -341,7 +341,7 @@ def adding(dashboard_window):
             messagebox.showerror("Error", "Age must be a number.")
             return
 
-        conn = sqlite3.connect("data.db")
+        conn = sqlite3.connect("datas.db")
         data_insert_query = '''INSERT INTO student_data (Name, Age, Gender, Department) VALUES (?, ?, ?, ?)'''
         data_insert_tuple = (employee_name, employee_age, employee_gender, employee_department)
         conn.execute(data_insert_query, data_insert_tuple)
@@ -394,19 +394,21 @@ def open_dashboard(username):
     leave_application_button.pack(pady=10)
 
 
-    back_button = tk.Button(dashboard, text="Logout", command=lambda: go_back(dashboard, logins))
+    back_button = tk.Button(dashboard, text="Logout", command=lambda: confirmation(dashboard, logins))
     back_button.pack(pady=20)
     
-    # Employee adding table creation on db
-    conn = sqlite3.connect("data.db")
-    table_create_query = '''CREATE TABLE IF NOT EXISTS student_data
-    (Name TEXT, Age INT, Gender TEXT, Department TEXT)
-    '''
-    conn.execute(table_create_query)
+    # # Employee adding table creation on db
+    # conn = sqlite3.connect("datas.db")
+    # table_create_query = '''CREATE TABLE IF NOT EXISTS employee_data
+    # (id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Age INT, Gender TEXT, Department TEXT)
+    # '''
+    # conn.execute(table_create_query)
+
+  
 
      
 
     
 
-    conn.close()
+    # conn.close()
 

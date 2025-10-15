@@ -11,11 +11,14 @@ import sqlite3
 def go_back(current_window, previous_window):
     current_window.destroy()
     previous_window.deiconify()
-
 def confirmation(current_window, previous_window):
     result = messagebox.askyesno(title="Logout" , message="Are you sure you want to log out?")
     if result:
         go_back(current_window, previous_window)
+
+def back(current_window, previous_window):
+    current_window.destroy()
+    previous_window.deiconify()
 
 def clockin(attendance_window, username, previous_window):
     clock = tk.Toplevel(attendance_window)
@@ -25,7 +28,7 @@ def clockin(attendance_window, username, previous_window):
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect("datas.db")
     data_insert_query = '''INSERT INTO attendance_data (User, Clockin) VALUES (?, ?)'''
     data_insert_tuple = (username, current_time)
     cursor = conn.cursor()
@@ -38,7 +41,7 @@ def clockin(attendance_window, username, previous_window):
 
     label_result.config(text=f"{username} checked in at {current_time}")
 
-    back_button = tk.Button(clock, text="Back", command=lambda: confirmation(clock, previous_window))
+    back_button = tk.Button(clock, text="Back", command=lambda: back(clock, previous_window))
     back_button.pack(pady=20)
 
 
@@ -50,7 +53,7 @@ def clockout(attendance_window, username, previous_window):
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
 
     # Get the latest clock-in time for this user
@@ -79,7 +82,7 @@ def clockout(attendance_window, username, previous_window):
 
     conn.close()
 
-    back_button = tk.Button(clock, text="Back", command=lambda: confirmation(clock, previous_window))
+    back_button = tk.Button(clock, text="Back", command=lambda: back(clock, previous_window))
     back_button.pack(pady=20)
 
 def review(attendance_window, username):
@@ -117,7 +120,7 @@ def review(attendance_window, username):
     tree.column("Hours", width=100)
 
     # Fetch attendance records
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
     query = '''SELECT Clockin, Clockout, Hours FROM attendance_data WHERE User = ?'''
     cursor.execute(query, (username,))
@@ -129,7 +132,7 @@ def review(attendance_window, username):
         tree.insert("", "end", values=record)
 
     # Back button
-    back_button = tk.Button(view, text="Back", width=15, command=lambda: go_back(view, attendance_window))
+    back_button = tk.Button(view, text="Back", width=15, command=lambda: back(view, attendance_window))
     back_button.pack(pady=10)
 
 
@@ -142,10 +145,10 @@ def contact(attendance_window, username):
     attendance_window.withdraw()
 
     # Create table
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
     table_create_query = '''
-    CREATE TABLE IF NOT EXISTS contact_data ( User TEXT, Contact TEXT, Email TEXT, Backup TEXT)'''
+    CREATE TABLE IF NOT EXISTS contact_data (id INTEGER PRIMARY KEY AUTOINCREMENT, User TEXT, Contact TEXT, Email TEXT, Backup TEXT)'''
     cursor.execute(table_create_query)
     conn.commit()
     conn.close()
@@ -169,7 +172,7 @@ def contact(attendance_window, username):
         email = email_entry.get()
         backup = backup_entry.get()
 
-        conn = sqlite3.connect("data.db")
+        conn = sqlite3.connect("datas.db")
         cursor = conn.cursor()
 
         # Check if user already has a record
@@ -194,12 +197,29 @@ def contact(attendance_window, username):
         conn.close()
 
         tk.Label(info, text="Contact info saved!", fg="green").pack(pady=10)
+         
+       # Display contact info at the bottom
+    conn = sqlite3.connect("datas.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT Contact, Email, Backup FROM contact_data WHERE User = ?", (username,))
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        contact_display_frame = tk.Frame(info, bg="white")
+        contact_display_frame.pack(pady=20)
+
+        tk.Label(contact_display_frame, text="Saved Contact Info:", font=("Arial", 12, "bold"), bg="#00BFFF", fg="white").pack(anchor="w")
+
+        labels = ["Phone:", "Email:", "Backup:"]
+        for i, value in enumerate(result):
+            tk.Label(contact_display_frame, text=f"{labels[i]} {value}", bg="white", font=("Arial", 11)).pack(anchor="w")
 
     submit_button = tk.Button(info, width=25, text="Submit", bg="#87CEEB", fg="white", activebackground="#00BFFF", activeforeground="white",command=save_contact)
     submit_button.pack(pady=10)
-   
 
-    back_button = tk.Button(info, text="Back", command=lambda: go_back(info, attendance_window))
+
+    back_button = tk.Button(info, text="Back", command=lambda: back(info, attendance_window))
     back_button.pack(pady=20)
 
 
@@ -212,8 +232,8 @@ def attendance(dashboard_window, employee_name,):
 
 
     # Table creation on db
-    conn = sqlite3.connect("data.db")
-    table_create_query = '''CREATE TABLE IF NOT EXISTS attendance_data (User TEXT, Clockin TEXT, Clockout TEXT, Hours REAL )'''
+    conn = sqlite3.connect("datas.db")
+    table_create_query = '''CREATE TABLE IF NOT EXISTS attendance_data (id INTEGER PRIMARY KEY AUTOINCREMENT, User TEXT, Clockin TEXT, Clockout TEXT, Hours REAL )'''
     conn.execute(table_create_query)
     conn.close()
 
@@ -245,7 +265,7 @@ def profile(dashboard_window, employee_name, employee_age, employee_gender, empl
     welcome_label.pack(pady=15)
 
     # Connect to database
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
 
     query = '''SELECT Name, Age, Gender, Department FROM student_data 
@@ -267,31 +287,25 @@ def profile(dashboard_window, employee_name, employee_age, employee_gender, empl
         tk.Label(prof, text="No matching profile found.", font=("Arial", 12), bg="white").pack(pady=10)
 
     # Back Button
-    back_button = tk.Button(prof, text="Back", width=15, command=lambda: confirmation(prof, dashboard_window))
+    back_button = tk.Button(prof, text="Back", width=15, command=lambda: back(prof, dashboard_window))
     back_button.pack(pady=20)
 
-def leave(attendance_window, username):
+def apply_leave(attendance_window, username):
     apply = tk.Toplevel(attendance_window)
     apply.title("Leave Application")
     apply.geometry("360x500")
     apply.configure(bg="white")
     attendance_window.withdraw()
 
-    # Title
-    welcome_label = tk.Label(apply, text="Leave Application", font=("Arial", 16, "bold"), bg="white")
-    welcome_label.pack(pady=15)
-
     # Leave Type
-    leave_type_label = tk.Label(apply, text="Leave Type", bg="white")
-    leave_type_label.pack(pady=(10, 2))
-
+    tk.Label(apply, text="Leave Type", bg="white").pack(pady=(15, 4))
     leave_types = [
-        "Annual Leave",
-        "Sick Leave",
-        "Maternity Leave",
+        "Annual Leave", 
+        "Sick Leave", 
+        "Maternity Leave", 
         "Paternity Leave",
-        "Compassionate Leave",
-        "Study Leave",
+        "Compassionate Leave", 
+        "Study Leave", 
         "Unpaid Leave"
     ]
     leave_type_combo = ttk.Combobox(apply, values=leave_types, state="readonly", width=30)
@@ -299,26 +313,22 @@ def leave(attendance_window, username):
     leave_type_combo.pack(pady=5)
 
     # Leave From
-    date_from_label = tk.Label(apply, text="Leave From (YYYY-MM-DD)", bg="white")
-    date_from_label.pack(pady=(15, 2))
+    tk.Label(apply, text="Leave From (YYYY-MM-DD)", bg="white").pack(pady=(15, 4))
     date_from_entry = tk.Entry(apply, width=32)
     date_from_entry.pack(pady=5)
 
     # Leave To
-    date_to_label = tk.Label(apply, text="Leave To (YYYY-MM-DD)", bg="white")
-    date_to_label.pack(pady=(15, 2))
+    tk.Label(apply, text="Leave To (YYYY-MM-DD)", bg="white").pack(pady=(15, 4))
     date_to_entry = tk.Entry(apply, width=32)
     date_to_entry.pack(pady=5)
 
     # Purpose
-    purpose_label = tk.Label(apply, text="Purpose", bg="white")
-    purpose_label.pack(pady=(15, 2))
-    purpose_entry = tk.Entry(apply, width=32)
+    tk.Label(apply, text="Purpose", bg="white").pack(pady=(15, 4))
+    purpose_entry = tk.Entry(apply, width=36,)
     purpose_entry.pack(pady=5)
 
     # Leave Period
-    period_label = tk.Label(apply, text="Leave Period", bg="white")
-    period_label.pack(pady=(15, 2))
+    tk.Label(apply, text="Leave Period", bg="white").pack(pady=(15, 2))
     leave_period = [
         "Jan 1 2024 - Dec 31 2024",
         "Jan 1 2025 - Dec 31 2025"
@@ -327,47 +337,100 @@ def leave(attendance_window, username):
     period_combo.set("-- Select Leave Period --")
     period_combo.pack(pady=5)
 
-    # Submit Button
-    import tkinter.messagebox as messagebox
-
     def submit_leave():
-      leave_type = leave_type_combo.get()
-      date_from = date_from_entry.get()
-      date_to = date_to_entry.get()
-      purpose = purpose_entry.get()
-      period = period_combo.get()
+        leave_type = leave_type_combo.get()
+        date_from = date_from_entry.get()
+        date_to = date_to_entry.get()
+        purpose = purpose_entry.get()
+        period = period_combo.get()
 
-      print(f"{username} applied for {leave_type} from {date_from} to {date_to} for '{purpose}' during {period}")
-    
-    # Table creation on db
-      conn = sqlite3.connect("data.db")
-      table_create_query = '''CREATE TABLE IF NOT EXISTS leave_data (Name TEXT, Type TEXT, FromDate TEXT, ToDate TEXT, Purpose TEXT, Period TEXT)''' 
-      conn.execute(table_create_query)
-      conn.commit()
-      conn.close()
+        print(f"{username} applied for {leave_type} from {date_from} to {date_to} for '{purpose}' during {period}")
 
-    # Data rendering on db
-      conn = sqlite3.connect("data.db")
-      data_insert_query = '''INSERT INTO leave_data (Name, Type, FromDate, ToDate, Purpose, Period)VALUES(?,?,?,?,?,?)'''
-      data_insert_tuple = (username, leave_type, date_from, date_to, purpose, period)
-      cursor = conn.cursor()
-      cursor.execute(data_insert_query, data_insert_tuple)
-      conn.commit()
-      conn.close()
+        conn = sqlite3.connect("datas.db")
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS leave_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT, Type TEXT, FromDate TEXT, ToDate TEXT, Purpose TEXT, Period TEXT
+            )
+        ''')
+        cursor.execute('''
+            INSERT INTO leave_data (Name, Type, FromDate, ToDate, Purpose, Period)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (username, leave_type, date_from, date_to, purpose, period))
+        conn.commit()
+        conn.close()
 
-    # Show confirmation message
-      messagebox.showinfo("Leave Submitted", "Your leave application has been successfully submitted.")
+        messagebox.showinfo("Leave Submitted", "Your leave application has been successfully submitted.")
+        apply.destroy()
+        attendance_window.deiconify()
 
-    # Go back to previous page 
-      apply.destroy()
+    submit_button = tk.Button(apply, width=25, text="Submit", bg="#87CEEB", fg="white",
+                              activebackground="#00BFFF", activeforeground="white", command=submit_leave)
+    submit_button.pack(pady=10)
 
-    # Submit button
-    
-
-
-    # Back Button
-    back_button = tk.Button(apply, text="Back", width=15, command=lambda: confirmation(apply, attendance_window))
+    back_button = tk.Button(apply, text="Back", width=15, command=lambda: back(apply, attendance_window))
     back_button.pack(pady=5)
+
+def leave_review(attendance_window, username):
+    reviews = tk.Toplevel(attendance_window)
+    reviews.title("Leave review")
+    reviews.geometry("360x500")
+    attendance_window.withdraw()
+
+    conn = sqlite3.connect("datas.db")
+    cursor = conn.cursor()
+
+    query = '''SELECT*FROM leave_data WHERE Name = ?'''
+    cursor.execute(query, (username,))
+    result = cursor.fetchall()
+    print(result)
+
+    conn.close()
+
+    # Display results
+    if result:
+     tk.Label(reviews, text="Your Leave Records", font=("Arial", 14, "bold")).pack(pady=10)
+
+    table_frame = tk.Frame(reviews, bg="white")
+    table_frame.pack(pady=10, padx=10, fill="x")
+
+    headers = ["Name", "Type", "From", "To", "Purpose", "Period"]
+    for col, header in enumerate(headers):
+        tk.Label(table_frame, text=header, font=("Arial", 11, "bold"), bg="#87CEEB", fg="white", width=28, anchor="w").grid(row=0, column=col, padx=2, pady=5)
+
+    for row_num, record in enumerate(result, start=1):
+        for col_num in range(1, 7): 
+            tk.Label(table_frame, text=record[col_num], font=("Arial", 10), bg="white", anchor="w", width=28).grid(row=row_num, column=col_num - 1, padx=2, pady=5)
+    else:
+     tk.Label(reviews, text="No leave records found.", font=("Arial", 12), fg="red").pack(pady=20)
+
+
+    back_button = tk.Button(reviews, text="Back", width=15, command=lambda: back(reviews, attendance_window))
+    back_button.pack(pady=5)
+
+
+def leaves(attendance_window, username):
+    apply = tk.Toplevel(attendance_window)
+    apply.title("Leave Application")
+    apply.geometry("360x500")
+    apply.configure(bg="white")
+    attendance_window.withdraw()
+
+    tk.Label(apply, text="LEAVE APPLICATION", font=("Arial", 14)).pack(pady=20)
+
+    apply_button = tk.Button(apply, text="APPLY FOR LEAVE", width=25,
+                             command=lambda: apply_leave(apply, username))
+    apply_button.pack(pady=25)
+
+    review_button = tk.Button(apply, text="REVIEW LEAVES", width=25,
+                              command=lambda: leave_review(apply, username))
+    review_button.pack(pady=25)
+
+    back_button = tk.Button(apply, text="Back", width=15, command=lambda: back(apply, attendance_window))
+    back_button.pack(pady=20)
+
+
 
 
 
@@ -432,14 +495,14 @@ def feedback(main_window, username):
         contact_info = contact_info_entry.get()
         
         # Table creation on db
-        conn = sqlite3.connect("data.db")
-        table_create_query = '''CREATE TABLE IF NOT EXISTS feedback_data(Name TEXT, Department TEXT, Ratings TEXT, Comments TEXT, Contact TEXT, Info TEXT)'''
+        conn = sqlite3.connect("datas.db")
+        table_create_query = '''CREATE TABLE IF NOT EXISTS feedback_data(id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Department TEXT, Ratings TEXT, Comments TEXT, Contact TEXT, Info TEXT)'''
         conn.execute(table_create_query)
         conn.commit()
         conn.close()
 
         # Data rendering on db
-        conn = sqlite3.connect("data.db")
+        conn = sqlite3.connect("datas.db")
         data_insert_query = '''INSERT INTO feedback_data (Name, Department, Ratings, Comments, Contact, Info)VALUES(?,?,?,?,?,?)'''
         data_insert_tuple = (name,  dept, rating, comments, contact, contact_info)
         cursor = conn.cursor()
@@ -453,7 +516,7 @@ def feedback(main_window, username):
     submit_btn.pack(pady=20)
 
     # Back Button
-    back_btn = tk.Button(fb, text="Back", width=15, command=lambda: confirmation(fb, main_window))
+    back_btn = tk.Button(fb, text="Back", width=15, command=lambda: back(fb, main_window))
     back_btn.pack(pady=5)
 
 
@@ -482,7 +545,7 @@ def open_employee_dashboard(employee_name, employee_age, employee_gender, employ
     feedback_button = tk.Button(dashboard, text="FEEDBACK FORM", command=lambda:feedback(dashboard, employee_name))
     feedback_button.pack(pady=10)
 
-    apply_leave_button = tk.Button(dashboard, text="APPLY LEAVE",  command=lambda: leave(dashboard, employee_name))
+    apply_leave_button = tk.Button(dashboard, text="APPLY LEAVE",  command=lambda: leaves(dashboard, employee_name))
     apply_leave_button.pack(pady=10)
 
     contact_button = tk.Button(dashboard, text="CONTACT INFO", command=lambda: contact(dashboard, employee_name))

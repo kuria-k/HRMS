@@ -4,8 +4,8 @@ from tkinter import messagebox
 from main import logins
 import sqlite3
 import hashlib
-from hr_dashboard import open_dashboard
-from employee import open_employee_dashboard 
+from hrdash import open_dashboard
+from edash import open_employee_dashboard 
 
 
 def login_user():

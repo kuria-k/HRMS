@@ -343,6 +343,7 @@ def apply_leave(attendance_window, username):
         date_to = date_to_entry.get()
         purpose = purpose_entry.get()
         period = period_combo.get()
+        status = "Pending"
 
         print(f"{username} applied for {leave_type} from {date_from} to {date_to} for '{purpose}' during {period}")
 
@@ -355,9 +356,9 @@ def apply_leave(attendance_window, username):
             )
         ''')
         cursor.execute('''
-            INSERT INTO leave_data (Name, Type, FromDate, ToDate, Purpose, Period)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (username, leave_type, date_from, date_to, purpose, period))
+            INSERT INTO leave_data (Name, Type, FromDate, ToDate, Purpose, Period, Status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (username, leave_type, date_from, date_to, purpose, period, status))
         conn.commit()
         conn.close()
 
@@ -374,40 +375,42 @@ def apply_leave(attendance_window, username):
 
 def leave_review(attendance_window, username):
     reviews = tk.Toplevel(attendance_window)
-    reviews.title("Leave review")
-    reviews.geometry("360x500")
+    reviews.title("Leave Review")
+    reviews.geometry("900x500")
     attendance_window.withdraw()
 
     conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
 
-    query = '''SELECT*FROM leave_data WHERE Name = ?'''
+    # Fetch leave records for the logged-in user
+    query = '''SELECT * FROM leave_data WHERE Name = ?'''
     cursor.execute(query, (username,))
     result = cursor.fetchall()
-    print(result)
-
     conn.close()
 
     # Display results
     if result:
-     tk.Label(reviews, text="Your Leave Records", font=("Arial", 14, "bold")).pack(pady=10)
+        tk.Label(reviews, text="Your Leave Records", font=("Arial", 14, "bold")).pack(pady=10)
 
-    table_frame = tk.Frame(reviews, bg="white")
-    table_frame.pack(pady=10, padx=10, fill="x")
+        table_frame = tk.Frame(reviews, bg="white")
+        table_frame.pack(pady=10, padx=10, fill="x")
 
-    headers = ["Name", "Type", "From", "To", "Purpose", "Period"]
-    for col, header in enumerate(headers):
-        tk.Label(table_frame, text=header, font=("Arial", 11, "bold"), bg="#87CEEB", fg="white", width=28, anchor="w").grid(row=0, column=col, padx=2, pady=5)
+        # Define headers
+        headers = ["ID", "Name", "Type", "From", "To", "Purpose", "Period", "Status"]
+        for col, header in enumerate(headers):
+            tk.Label(table_frame, text=header, font=("Arial", 11, "bold"), bg="#87CEEB", fg="white", width=15, anchor="w").grid(row=0, column=col, padx=2, pady=5)
 
-    for row_num, record in enumerate(result, start=1):
-        for col_num in range(1, 7): 
-            tk.Label(table_frame, text=record[col_num], font=("Arial", 10), bg="white", anchor="w", width=28).grid(row=row_num, column=col_num - 1, padx=2, pady=5)
+        # Populate table rows
+        for row_num, record in enumerate(result, start=1):
+            for col_num in range(len(record)):
+                tk.Label(table_frame, text=record[col_num], font=("Arial", 10), bg="white", anchor="w", width=20).grid(row=row_num, column=col_num, padx=2, pady=5)
     else:
-     tk.Label(reviews, text="No leave records found.", font=("Arial", 12), fg="red").pack(pady=20)
+        tk.Label(reviews, text="No leave records found.", font=("Arial", 12), fg="red").pack(pady=20)
 
-
+    # Back button
     back_button = tk.Button(reviews, text="Back", width=15, command=lambda: back(reviews, attendance_window))
     back_button.pack(pady=5)
+
 
 
 def leaves(attendance_window, username):

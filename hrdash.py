@@ -76,64 +76,116 @@ def review(attendance_window, username):
 def leave(attendance_window, username):
     application = tk.Toplevel(attendance_window)
     application.title("Attendance Review")
-    application.geometry("450x400")
+    application.geometry("700x450")
     attendance_window.withdraw()
 
+    # Temporary in-memory status tracker
+    leave_status = {}
+
     # Title
-    title_label = tk.Label(application, text=f"Leave Applications", font=("Arial", 16, "bold"))
+    title_label = tk.Label(application, text="Leave Applications", font=("Arial", 16, "bold"))
     title_label.pack(pady=10)
 
-    # # Frame for table
+    # Frame for table
     table_frame = tk.Frame(application)
     table_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-    # # Scrollbar
+    # Scrollbar
     scrollbar = ttk.Scrollbar(table_frame)
     scrollbar.pack(side="right", fill="y")
 
-    # # Treeview widget
-    tree = ttk.Treeview(table_frame, columns=("Name", "Type", "From", "To", "Purpose", "Period"), show="headings", yscrollcommand=scrollbar.set)
+    # Treeview widget
+    tree = ttk.Treeview(table_frame, columns=("ID", "Name", "Type", "From", "To", "Purpose", "Period", "Decision", "Status"), show="headings", yscrollcommand=scrollbar.set)
     tree.pack(fill="both", expand=True)
-
     scrollbar.config(command=tree.yview)
 
-    # # Define column headings
+    # Define column headings
+    tree.heading("ID", text="ID")
     tree.heading("Name", text="User")
     tree.heading("Type", text="Type")
     tree.heading("From", text="From")
     tree.heading("To", text="To")
     tree.heading("Purpose", text="Purpose")
     tree.heading("Period", text="Period")
+    tree.heading("Status", text="Status")
 
-    # # Set column widths
-    tree.column("Name", width=120)
-    tree.column("Type", width=120)
-    tree.column("From", width=120)
-    tree.column("To", width=100)
-    tree.column("Purpose", width=120)
-    tree.column("Period", width=120)
+    # Set column widths
+    tree.column("ID", width=40)
+    tree.column("Name", width=100)
+    tree.column("Type", width=80)
+    tree.column("From", width=80)
+    tree.column("To", width=80)
+    tree.column("Purpose", width=100)
+    tree.column("Period", width=60)
+    tree.column("Status", width=80)
 
-    # Fetch attendance records
+    # Fetch leave records
     conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT Name, Type, FromDate, ToDate, Purpose, Period FROM leave_data")
+    cursor.execute("SELECT id, Name, Type, FromDate, ToDate, Purpose, Period, Status FROM leave_data")
     results = cursor.fetchall()
     conn.close()
 
-    # # Insert records into table
+    # Insert records into table
     for result in results:
-        tree.insert("", "end", values=result)
+        leave_id = result[0]
+        decision = leave_status.get(leave_id, "Pending")
+        tree.insert("", "end", values=(*result, decision))
 
-    # Back button
-    back_button = tk.Button(application, text="Back", width=15, command=lambda: go_back(application, attendance_window))
-    back_button.pack(pady=10)
+    # Approve leave
+    def approve_leave():
+        selected = tree.selection()
+        if not selected:
+            messagebox.showerror("Error", "Please select a leave request to approve.")
+            return
+        item = tree.item(selected)
+        leave_id = item["values"][0]
+        leave_status[leave_id] = "Approved"
+
+        conn = sqlite3.connect("datas.db")
+        cursor = conn.cursor()
+        cursor.execute("UPDATE leave_data SET Status='Approved' WHERE id=?", (leave_id,))
+        conn.commit()
+        conn.close()
+
+
+        # tree.item(selected, values=(*item["values"][:-1], "Approved"))
+        messagebox.showinfo("Success", "Leave request approved.")
+
+    # Decline leave
+    def decline_leave():
+        selected = tree.selection()
+        if not selected:
+            messagebox.showerror("Error", "Please select a leave request to decline.")
+            return
+        item = tree.item(selected)
+        leave_id = item["values"][0]
+        leave_status[leave_id] = "Declined"
+
+        conn = sqlite3.connect("datas.db")
+        cursor = conn.cursor()
+        cursor.execute("UPDATE leave_data SET Status='Declined' WHERE id=?", (leave_id,))
+        conn.commit()
+        conn.close()
+
+
+        # tree.item(selected, values=(*item["values"][:-1], "Declined"))
+        messagebox.showinfo("Declined", "Leave request declined.")
+
+    # Action buttons
+    action_frame = tk.Frame(application)
+    action_frame.pack(pady=10)
+
+    tk.Button(action_frame, text="Approve", width=15, bg="green", fg="white", command=approve_leave).pack(side="left", padx=10)
+    tk.Button(action_frame, text="Decline", width=15, bg="red", fg="white", command=decline_leave).pack(side="left", padx=10)
+    tk.Button(action_frame, text="Back", width=15, command=lambda: go_back(application, attendance_window)).pack(side="left", padx=10)
 
 
 
 def profile(dashboard_window):
     prof = tk.Toplevel(dashboard_window)
     prof.title("Employee Profiles")
-    prof.geometry("500x400")
+    prof.geometry("600x450")
     prof.configure(bg="white")
     dashboard_window.withdraw()
 
@@ -149,17 +201,18 @@ def profile(dashboard_window):
     scrollbar.pack(side="right", fill="y")
 
     # Treeview table
-    tree = ttk.Treeview(table_frame, columns=("Name", "Age", "Gender", "Department"), show="headings", yscrollcommand=scrollbar.set)
+    tree = ttk.Treeview(table_frame, columns=("ID", "Name", "Age", "Gender", "Department"), show="headings", yscrollcommand=scrollbar.set)
     tree.pack(fill="both", expand=True)
-
     scrollbar.config(command=tree.yview)
 
     # Define column headings
+    tree.heading("ID", text="ID")
     tree.heading("Name", text="Name")
     tree.heading("Age", text="Age")
     tree.heading("Gender", text="Gender")
     tree.heading("Department", text="Department")
 
+    tree.column("ID", width=40)
     tree.column("Name", width=120)
     tree.column("Age", width=60)
     tree.column("Gender", width=80)
@@ -168,7 +221,7 @@ def profile(dashboard_window):
     # Fetch data from database
     conn = sqlite3.connect("datas.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT Name, Age, Gender, Department FROM student_data")
+    cursor.execute("SELECT id, Name, Age, Gender, Department FROM student_data")
     results = cursor.fetchall()
     conn.close()
 
@@ -176,9 +229,94 @@ def profile(dashboard_window):
     for row in results:
         tree.insert("", "end", values=row)
 
-    # Back button
-    back_button = tk.Button(prof, text="Back", width=15, command=lambda: go_back(prof, dashboard_window))
-    back_button.pack(pady=10)
+    # Delete selected employee
+    def delete_employee():
+        selected = tree.selection()
+        if not selected:
+            messagebox.showerror("Error", "Please select an employee to delete.")
+            return
+        emp_id = tree.item(selected)["values"][0]
+        conn = sqlite3.connect("datas.db")
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM student_data WHERE id=?", (emp_id,))
+        conn.commit()
+        conn.close()
+        tree.delete(selected)
+        messagebox.showinfo("Deleted", "Employee record deleted.")
+
+    # Update selected employee
+    def update_employee():
+        selected = tree.selection()
+        if not selected:
+            messagebox.showerror("Error", "Please select an employee to update.")
+            return
+        emp_data = tree.item(selected)["values"]
+        open_update_window(emp_data)
+
+    # Update window
+    def open_update_window(emp_data):
+        update_win = tk.Toplevel(prof)
+        update_win.title("Update Employee")
+        update_win.geometry("350x400")
+
+        emp_id, name, age, gender, department = emp_data
+
+        tk.Label(update_win, text="Update Employee", font=("Arial", 14)).pack(pady=10)
+
+        name_entry = tk.Entry(update_win, width=30)
+        name_entry.insert(0, name)
+        name_entry.pack()
+
+        age_entry = tk.Entry(update_win, width=30)
+        age_entry.insert(0, age)
+        age_entry.pack()
+
+        gender_combo = ttk.Combobox(update_win, values=["Male", "Female"], width=30, state='readonly')
+        gender_combo.set(gender)
+        gender_combo.pack(pady=5)
+
+        department_entry = tk.Entry(update_win, width=30)
+        department_entry.insert(0, department)
+        department_entry.pack()
+
+        def save_update():
+            new_name = name_entry.get()
+            new_age = age_entry.get()
+            new_gender = gender_combo.get()
+            new_department = department_entry.get()
+
+            if not new_name or not new_age or not new_gender or not new_department:
+                messagebox.showerror("Error", "Please fill in all fields.")
+                return
+
+            try:
+                new_age = int(new_age)
+            except ValueError:
+                messagebox.showerror("Error", "Age must be a number.")
+                return
+
+            conn = sqlite3.connect("datas.db")
+            cursor = conn.cursor()
+            cursor.execute('''UPDATE student_data SET Name=?, Age=?, Gender=?, Department=? WHERE id=?''',
+                           (new_name, new_age, new_gender, new_department, emp_id))
+            conn.commit()
+            conn.close()
+
+            messagebox.showinfo("Success", "Employee updated successfully!")
+            update_win.destroy()
+            prof.destroy()
+            profile(dashboard_window) 
+
+        tk.Button(update_win, text="Save",bg="#87CEEB", fg="white", command=save_update).pack(pady=20)
+
+    # Action buttons
+    action_frame = tk.Frame(prof, bg="white")
+    action_frame.pack(pady=10)
+
+    tk.Button(action_frame, text="Update", width=15, bg="yellow", fg="black", command=update_employee).pack(side="left", padx=10)
+    tk.Button(action_frame, text="Delete", width=15, bg="red", fg="white", command=delete_employee).pack(side="left", padx=10)
+    tk.Button(action_frame, text="Back", width=15, command=lambda: go_back(prof, dashboard_window)).pack(side="left", padx=10)
+
 
 
 def memo(dashboard_window):

@@ -7,10 +7,12 @@ import hashlib
 from hr_dashboard import open_dashboard
 from employee import open_employee_dashboard 
 
+
 def login_user():
     username = username_entry.get()
     password = password_entry.get()
     role = role_combo.get()
+    
 
     if not username or not password or not role:
         messagebox.showerror("Missing Input", "Please fill in all fields.")

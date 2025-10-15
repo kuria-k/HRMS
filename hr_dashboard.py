@@ -6,6 +6,8 @@ from tkinter import messagebox
 import hashlib
 
 
+
+
 # Reusable back function
 def go_back(current_window, previous_window):
     current_window.destroy()
@@ -16,42 +18,61 @@ def confirmation(current_window, previous_window):
     if result:
         go_back(current_window, previous_window)
 
-def profile(dashboard_window, employee_name, employee_age, employee_gender, employee_department):
+import tkinter as tk
+from tkinter import ttk
+import sqlite3
+
+def profile(dashboard_window):
     prof = tk.Toplevel(dashboard_window)
-    prof.title("Profile")
-    prof.geometry("360x300")
+    prof.title("Employee Profiles")
+    prof.geometry("500x400")
     prof.configure(bg="white")
     dashboard_window.withdraw()
 
-    # Title
-    welcome_label = tk.Label(prof, text="Employee Profile", font=("Arial", 16, "bold"), bg="white")
-    welcome_label.pack(pady=15)
+    welcome_label = tk.Label(prof, text="Employee Profiles", font=("Arial", 16, "bold"), bg="white")
+    welcome_label.pack(pady=10)
 
-    # Connect to database
+    # Frame for table
+    table_frame = tk.Frame(prof)
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    # Scrollbar
+    scrollbar = ttk.Scrollbar(table_frame)
+    scrollbar.pack(side="right", fill="y")
+
+    # Treeview table
+    tree = ttk.Treeview(table_frame, columns=("Name", "Age", "Gender", "Department"), show="headings", yscrollcommand=scrollbar.set)
+    tree.pack(fill="both", expand=True)
+
+    scrollbar.config(command=tree.yview)
+
+    # Define column headings
+    tree.heading("Name", text="Name")
+    tree.heading("Age", text="Age")
+    tree.heading("Gender", text="Gender")
+    tree.heading("Department", text="Department")
+
+    tree.column("Name", width=120)
+    tree.column("Age", width=60)
+    tree.column("Gender", width=80)
+    tree.column("Department", width=120)
+
+    # Fetch data from database
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
-
-    query = '''SELECT Name, Age, Gender, Department FROM student_data 
-               WHERE Name = ? AND Age = ? AND Gender = ? AND Department = ?'''
-    cursor.execute(query, (employee_name, employee_age, employee_gender, employee_department))
-    result = cursor.fetchone()
+    cursor.execute("SELECT Name, Age, Gender, Department FROM student_data")
+    results = cursor.fetchall()
     conn.close()
 
-    # Table Frame
-    table_frame = tk.Frame(prof, bg="white")
-    table_frame.pack(pady=10)
+    # Insert data into table
+    for row in results:
+        tree.insert("", "end", values=row)
 
-    if result:
-        fields = ["Name", "Age", "Gender", "Department"]
-        for i, field in enumerate(fields):
-            tk.Label(table_frame, text=field + ":", font=("Arial", 12, "bold"), bg="white", anchor="w", width=12).grid(row=i, column=0, padx=10, pady=5, sticky="w")
-            tk.Label(table_frame, text=result[i], font=("Arial", 12), bg="white", anchor="w", width=20).grid(row=i, column=1, padx=10, pady=5, sticky="w")
-    else:
-        tk.Label(prof, text="No matching profile found.", font=("Arial", 12), bg="white").pack(pady=10)
-
-    # Back Button
+    # Back button
     back_button = tk.Button(prof, text="Back", width=15, command=lambda: confirmation(prof, dashboard_window))
-    back_button.pack(pady=20)
+    back_button.pack(pady=10)
+
+
 
 def memo(dashboard_window):
     memo_window = tk.Toplevel(logins)
@@ -148,7 +169,8 @@ def create(dashboard_window):
     submit_button.pack(pady=20)
 
       
-     
+
+
 
 
 def adding(dashboard_window):
@@ -193,6 +215,7 @@ def adding(dashboard_window):
         employee_age = age_entry.get()
         employee_gender = gender_combo.get()
         employee_department = department_entry.get()
+
 
         if not employee_name or not employee_age or not employee_gender or not employee_department:
             messagebox.showerror("Error", "Please fill in all fields.")

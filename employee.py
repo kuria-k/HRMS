@@ -83,35 +83,59 @@ def clockout(attendance_window, username, previous_window):
     back_button.pack(pady=20)
 
 
+import tkinter as tk
+from tkinter import ttk
+import sqlite3
+
 def review(attendance_window, username):
     view = tk.Toplevel(attendance_window)
-    view.title("Review")
-    view.geometry("350x470")
+    view.title("Attendance Review")
+    view.geometry("450x400")
     attendance_window.withdraw()
 
+    # Title
+    title_label = tk.Label(view, text=f"Attendance for {username}", font=("Arial", 16, "bold"))
+    title_label.pack(pady=10)
+
+    # Frame for table
+    table_frame = tk.Frame(view)
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    # Scrollbar
+    scrollbar = ttk.Scrollbar(table_frame)
+    scrollbar.pack(side="right", fill="y")
+
+    # Treeview widget
+    tree = ttk.Treeview(table_frame, columns=("Clockin", "Clockout", "Hours"), show="headings", yscrollcommand=scrollbar.set)
+    tree.pack(fill="both", expand=True)
+
+    scrollbar.config(command=tree.yview)
+
+    # Define column headings
+    tree.heading("Clockin", text="Clock In")
+    tree.heading("Clockout", text="Clock Out")
+    tree.heading("Hours", text="Hours Worked")
+
+    # Set column widths
+    tree.column("Clockin", width=120)
+    tree.column("Clockout", width=120)
+    tree.column("Hours", width=100)
+
+    # Fetch attendance records
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
-
-    # Get all attendance records for the user
     query = '''SELECT Clockin, Clockout, Hours FROM attendance_data WHERE User = ?'''
     cursor.execute(query, (username,))
     records = cursor.fetchall()
-
     conn.close()
 
-    # Display records
-    if records:
-        for record in records:
-            clockin, clockout, hours = record
-            entry = f"User: {username}\nClockin: {clockin}\nClockout: {clockout}\nHours: {hours}\n"
-            label = tk.Label(view, text=entry, justify="left", anchor="w")
-            label.pack(pady=5, padx=10, anchor="w")
-    else:
-        label = tk.Label(view, text="No attendance records found.")
-        label.pack(pady=20)
+    # Insert records into table
+    for record in records:
+        tree.insert("", "end", values=record)
 
-    back_button = tk.Button(view, text="Back", command=lambda: go_back(view, attendance_window))
-    back_button.pack(pady=20)
+    # Back button
+    back_button = tk.Button(view, text="Back", width=15, command=lambda: go_back(view, attendance_window))
+    back_button.pack(pady=10)
 
 
 

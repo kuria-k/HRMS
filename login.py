@@ -64,7 +64,7 @@ title_label.pack()
 
 username_label = tk.Label(logins, text="Username", pady=11)
 username_label.pack()
-username_entry = tk.Entry(logins, width=30)
+username_entry = tk.Entry(logins, width=30,)
 username_entry.pack()
 
 password_label = tk.Label(logins, text="Password", pady=11)

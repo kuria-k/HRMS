@@ -242,17 +242,29 @@ def attendance(dashboard_window, employee_name,):
     conn.execute(table_create_query)
     conn.close()
 
+    button_style = {
+        "width": 25,
+        "height": 2,
+        "font": ("Arial", 12, "bold"),
+        "bg": "#4682B4",
+        "fg": "white",
+        "activebackground": "#5A9BD5",
+        "activeforeground": "white",
+        "bd": 0,
+        "relief": "ridge"
+    }
+
 
     welcome_label = tk.Label(attend, text="Add Employee Details", font=("Arial", 14))
     welcome_label.pack(pady=20)
 
-    checkin_button = tk.Button(attend, text="Check in" , command=lambda: clockin(attend, employee_name, attend))
+    checkin_button = tk.Button(attend, text="Check in" , command=lambda: clockin(attend, employee_name, attend), **button_style)
     checkin_button.pack(pady=25)
 
-    checkout_button = tk.Button(attend, text="Check out", command=lambda: clockout(attend, employee_name, attend))
+    checkout_button = tk.Button(attend, text="Check out", command=lambda: clockout(attend, employee_name, attend), **button_style)
     checkout_button.pack(pady=25)
 
-    review_button = tk.Button(attend, text="Review attendance", command=lambda: review(attend, employee_name))
+    review_button = tk.Button(attend, text="Review attendance", command=lambda: review(attend, employee_name), **button_style)
     review_button.pack(pady=25)
 
     back_button = tk.Button(attend, text="Back", command=lambda: back(attend, dashboard_window))
@@ -282,14 +294,26 @@ def profile(dashboard_window, employee_name, employee_age, employee_gender, empl
     # Table Frame
     table_frame = tk.Frame(prof, bg="white")
     table_frame.pack(pady=10)
-
     if result:
-        fields = ["Name", "Age", "Gender", "Department"]
-        for i, field in enumerate(fields):
-            tk.Label(table_frame, text=field + ":", font=("Arial", 12, "bold"), bg="white", anchor="w", width=12).grid(row=i, column=0, padx=10, pady=5, sticky="w")
-            tk.Label(table_frame, text=result[i], font=("Arial", 12), bg="white", anchor="w", width=20).grid(row=i, column=1, padx=10, pady=5, sticky="w")
+    # Create a styled frame to hold profile info
+      profile_frame = tk.Frame(table_frame, bg="white", bd=2, relief="groove")
+    profile_frame.pack(pady=20, padx=20, fill="x")
+
+    # Section title
+    tk.Label(profile_frame, text="Employee Profile", font=("Arial", 16, "bold"),
+             bg="white", fg="#4682B4").grid(row=0, column=0, columnspan=2, pady=(10, 20))
+
+    fields = ["Name", "Age", "Gender", "Department"]
+    for i, field in enumerate(fields):
+        tk.Label(profile_frame, text=f"{field}:", font=("Arial", 12, "bold"),
+                 bg="white", anchor="w", width=15).grid(row=i+1, column=0, padx=10, pady=8, sticky="w")
+
+        tk.Label(profile_frame, text=result[i], font=("Arial", 12),
+                 bg="white", anchor="w", width=30).grid(row=i+1, column=1, padx=10, pady=8, sticky="w")
     else:
-        tk.Label(prof, text="No matching profile found.", font=("Arial", 12), bg="white").pack(pady=10)
+        tk.Label(prof, text="No matching profile found.", font=("Arial", 12, "italic"),
+             bg="white", fg="red").pack(pady=20)
+
 
     # Back Button
     back_button = tk.Button(prof, text="Back", width=15, command=lambda: back(prof, dashboard_window))
@@ -422,23 +446,39 @@ def leaves(attendance_window, username):
     apply = tk.Toplevel(attendance_window)
     apply.title("Leave Application")
     apply.geometry("1920x1080")
-    apply.configure(bg="white")
     attendance_window.withdraw()
 
-    tk.Label(apply, text="LEAVE APPLICATION", font=("Arial", 14)).pack(pady=20)
+    # Button styling dictionary
+    button_style = {
+        "width": 25,
+        "height": 2,
+        "font": ("Arial", 12, "bold"),
+        "bg": "#4682B4",
+        "fg": "white",
+        "activebackground": "#5A9BD5",
+        "activeforeground": "white",
+        "bd": 0,
+        "relief": "ridge"
+    }
 
-    apply_button = tk.Button(apply, text="APPLY FOR LEAVE", width=25,
-                             command=lambda: apply_leave(apply, username))
-    apply_button.pack(pady=25)
+    # Header section
+    header_frame = tk.Frame(apply, bg="#87CEEB")
+    header_frame.pack(fill="x")
 
-    review_button = tk.Button(apply, text="REVIEW LEAVES", width=25,
-                              command=lambda: leave_review(apply, username))
-    review_button.pack(pady=25)
+    tk.Label(header_frame, text="LEAVE APPLICATION", font=("Arial", 18, "bold"), pady=20).pack()
+
+    # Content section
+    content_frame = tk.Frame(apply, bg="#F0F8FF")
+    content_frame.pack(pady=60)
+
+    apply_button = tk.Button(content_frame, text="APPLY FOR LEAVE", command=lambda: apply_leave(apply, username), **button_style)
+    apply_button.pack(pady=20)
+
+    review_button = tk.Button(content_frame, text="REVIEW LEAVES",  command=lambda: leave_review(apply, username), **button_style)
+    review_button.pack(pady=20)
 
     back_button = tk.Button(apply, text="Back", width=15, command=lambda: back(apply, attendance_window))
     back_button.pack(pady=20)
-
-
 
 
 
@@ -561,7 +601,7 @@ def passwords(attendance_window, username, password):
 def open_window(change, username):
     updater = tk.Toplevel(change)
     updater.title("Set New Password")
-    updater.geometry("1366x768")
+    updater.geometry("1925x1085")
     
     tk.Label(updater, text=f"Logged in as {username}").pack()
     tk.Label(updater, text="Enter New Password", font=("Arial", 12)).pack(pady=10)
@@ -615,35 +655,47 @@ def open_employee_dashboard(employee_name, employee_age, employee_gender, employ
     dashboard.geometry("1920x1080")
     logins.withdraw()
 
+    button_style = {
+        "width": 25,
+        "height": 2,
+        "font": ("Arial", 12, "bold"),
+        "bg": "#4682B4",
+        "fg": "white",
+        "activebackground": "#5A9BD5",
+        "activeforeground": "white",
+        "bd": 0,
+        "relief": "ridge"
+    }
+
     welcome_label = tk.Label(dashboard, text="Welcome to the Employee Dashboard!", font=("Arial", 14))
     welcome_label.pack(pady=20)
 
-    view_profile_button = tk.Button(dashboard, text="VIEW PROFILE", command=lambda: profile(dashboard, employee_name, employee_age, employee_gender, employee_department))
+    view_profile_button = tk.Button(dashboard, text="VIEW PROFILE", command=lambda: profile(dashboard, employee_name, employee_age, employee_gender, employee_department), **button_style)
     view_profile_button.pack(pady=10)
 
-    attendance_button = tk.Button(dashboard, text="ATTENDANCE", command=lambda:attendance(dashboard, employee_name))
+    attendance_button = tk.Button(dashboard, text="ATTENDANCE", command=lambda:attendance(dashboard, employee_name), **button_style)
     attendance_button.pack(pady=10)
 
-    view_memo_button = tk.Button(dashboard, text="VIEW MEMO")
+    view_memo_button = tk.Button(dashboard, text="VIEW MEMO", **button_style)
     view_memo_button.pack(pady=10)
 
-    view_report_button = tk.Button(dashboard, text="VIEW PAYSLIP")
+    view_report_button = tk.Button(dashboard, text="VIEW PAYSLIP", **button_style)
     view_report_button.pack(pady=10)
 
-    feedback_button = tk.Button(dashboard, text="FEEDBACK FORM", command=lambda:feedback(dashboard, employee_name))
+    feedback_button = tk.Button(dashboard, text="FEEDBACK FORM", command=lambda:feedback(dashboard, employee_name), **button_style)
     feedback_button.pack(pady=10)
 
-    apply_leave_button = tk.Button(dashboard, text="APPLY LEAVE",  command=lambda: leaves(dashboard, employee_name))
+    apply_leave_button = tk.Button(dashboard, text="APPLY LEAVE",  command=lambda: leaves(dashboard, employee_name), **button_style)
     apply_leave_button.pack(pady=10)
 
-    contact_button = tk.Button(dashboard, text="CONTACT INFO", command=lambda: contact(dashboard, employee_name))
+    contact_button = tk.Button(dashboard, text="CONTACT INFO", command=lambda: contact(dashboard, employee_name), **button_style)
     contact_button.pack(pady=10)
 
-    change_pass_button = tk.Button(dashboard, text="CHANGE PASSWORD", command=lambda: passwords(dashboard, employee_name, password))
+    change_pass_button = tk.Button(dashboard, text="CHANGE PASSWORD", command=lambda: passwords(dashboard, employee_name, password), **button_style)
     change_pass_button.pack(pady=10)
 
 
-    back_button = tk.Button(dashboard, text="Logout", command=lambda: confirmation(dashboard, logins))
+    back_button = tk.Button(dashboard, text="Logout", command=lambda: confirmation(dashboard, logins), **button_style)
     back_button.pack(pady=20)
 
 

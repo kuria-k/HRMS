@@ -32,8 +32,9 @@ def review(attendance_window, username):
     title_label.pack(pady=10)
 
     # # Frame for table
-    table_frame = tk.Frame(view)
-    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    table_frame = tk.Frame(view, height=600)
+    table_frame.pack(fill="x", padx=10, pady=(10, 0))
+    table_frame.pack_propagate(False)
 
     # # Scrollbar
     scrollbar = ttk.Scrollbar(table_frame)
@@ -87,8 +88,9 @@ def leave(attendance_window, username):
     title_label.pack(pady=10)
 
     # Frame for table
-    table_frame = tk.Frame(application)
-    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    table_frame = tk.Frame(application, height=600)
+    table_frame.pack(fill="x", padx=10, pady=(10, 0))
+    table_frame.pack_propagate(False)
 
     # Scrollbar
     scrollbar = ttk.Scrollbar(table_frame)
@@ -193,8 +195,10 @@ def profile(dashboard_window):
     welcome_label.pack(pady=10)
 
     # Frame for table
-    table_frame = tk.Frame(prof)
-    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    table_frame = tk.Frame(prof, height=700)
+    table_frame.pack(fill="x", padx=10, pady=(10, 0))
+    table_frame.pack_propagate(False)
+
 
     # Scrollbar
     scrollbar = ttk.Scrollbar(table_frame)
@@ -204,6 +208,11 @@ def profile(dashboard_window):
     tree = ttk.Treeview(table_frame, columns=("ID", "Name", "Age", "Gender", "Department"), show="headings", yscrollcommand=scrollbar.set)
     tree.pack(fill="both", expand=True)
     scrollbar.config(command=tree.yview)
+
+    x_scrollbar = ttk.Scrollbar(table_frame, orient="horizontal", command=tree.xview)
+    x_scrollbar.pack(side="bottom", fill="x")
+    tree.configure(xscrollcommand=x_scrollbar.set)
+
 
     # Define column headings
     tree.heading("ID", text="ID")
@@ -511,32 +520,45 @@ def open_dashboard(username):
     dashboard.geometry("1925x1085")
     logins.withdraw()
 
+    # Button styling dictionary
+    button_style = {
+        "width": 25,
+        "height": 2,
+        "font": ("Arial", 12, "bold"),
+        "bg": "#4682B4",
+        "fg": "white",
+        "activebackground": "#5A9BD5",
+        "activeforeground": "white",
+        "bd": 0,
+        "relief": "ridge"
+    }
+
     welcome_label = tk.Label(dashboard, text="Welcome to the HR Dashboard!", font=("Arial", 14))
     welcome_label.pack(pady=20)
 
-    add_employee_button = tk.Button(dashboard, text="ADD EMPLOYEE", command=lambda: adding(dashboard))
+    add_employee_button = tk.Button(dashboard, text="ADD EMPLOYEE", command=lambda: adding(dashboard), **button_style)
     add_employee_button.pack(pady=10)
 
-    create_credentials_button = tk.Button(dashboard, text="CREATE EMPLOYEE", command=lambda: create(dashboard))
+    create_credentials_button = tk.Button(dashboard, text="CREATE EMPLOYEE", command=lambda: create(dashboard), **button_style)
     create_credentials_button.pack(pady=10)
 
-    add_memo_button = tk.Button(dashboard, text="ADD MEMO", command=lambda: memo(dashboard))
+    add_memo_button = tk.Button(dashboard, text="ADD MEMO", command=lambda: memo(dashboard), **button_style)
     add_memo_button.pack(pady=10)
 
-    add_report_button = tk.Button(dashboard, text="ADD REPORT")
+    add_report_button = tk.Button(dashboard, text="ADD REPORT", **button_style)
     add_report_button.pack(pady=10)
 
-    view_profile_button = tk.Button(dashboard, text="VIEW EMPLOYEES" , command=lambda: profile(dashboard))
+    view_profile_button = tk.Button(dashboard, text="VIEW EMPLOYEES" , command=lambda: profile(dashboard), **button_style)
     view_profile_button.pack(pady=10)
 
-    view_att_button = tk.Button(dashboard, text="ATTENDANCE REVIEW" , command=lambda: review(dashboard, username))
+    view_att_button = tk.Button(dashboard, text="ATTENDANCE REVIEW" , command=lambda: review(dashboard, username), **button_style)
     view_att_button.pack(pady=10)
 
-    leave_application_button = tk.Button(dashboard, text="LEAVE APPLICATIONS" , command=lambda: leave(dashboard, username))
+    leave_application_button = tk.Button(dashboard, text="LEAVE APPLICATIONS" , command=lambda: leave(dashboard, username), **button_style)
     leave_application_button.pack(pady=10)
 
 
-    back_button = tk.Button(dashboard, text="Logout", command=lambda: confirmation(dashboard, logins))
+    back_button = tk.Button(dashboard, text="Logout", command=lambda: confirmation(dashboard, logins), **button_style)
     back_button.pack(pady=20)
     
     # # Employee adding table creation on db

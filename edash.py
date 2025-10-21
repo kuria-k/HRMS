@@ -161,16 +161,16 @@ def contact(attendance_window, username):
     # Form fields
     contact_label = tk.Label(info, text="Contact", pady=5) 
     contact_label.pack() 
-    contact_entry = tk.Entry(info, width=30) 
-    contact_entry.pack() 
+    contact_entry = tk.Entry(info, width=35) 
+    contact_entry.pack(pady=20) 
     email_label = tk.Label(info, text="Email", pady=5) 
     email_label.pack() 
-    email_entry = tk.Entry(info, width=30) 
-    email_entry.pack() 
+    email_entry = tk.Entry(info, width=35) 
+    email_entry.pack(pady=20) 
     backup_label = tk.Label(info, text="Backup", pady=5) 
     backup_label.pack() 
-    backup_entry = tk.Entry(info, width=30) 
-    backup_entry.pack()
+    backup_entry = tk.Entry(info, width=35) 
+    backup_entry.pack(pady=20)
 
     def save_contact():
         contact = contact_entry.get()
@@ -220,7 +220,7 @@ def contact(attendance_window, username):
         for i, value in enumerate(result):
             tk.Label(contact_display_frame, text=f"{labels[i]} {value}", bg="white", font=("Arial", 11)).pack(anchor="w")
 
-    submit_button = tk.Button(info, width=25, text="Submit", bg="#87CEEB", fg="white", activebackground="#00BFFF", activeforeground="white",command=save_contact)
+    submit_button = tk.Button(info, width=25, text="SAVE CONTACT", bg="#158B06", fg="white", activebackground="#00BFFF", activeforeground="white",command=save_contact)
     submit_button.pack(pady=10)
 
 
@@ -343,18 +343,18 @@ def apply_leave(attendance_window, username):
 
     # Leave From
     tk.Label(apply, text="Leave From (YYYY-MM-DD)", bg="white").pack(pady=(15, 4))
-    date_from_entry = tk.Entry(apply, width=32)
-    date_from_entry.pack(pady=5)
+    date_from_entry = tk.Entry(apply, width=35)
+    date_from_entry.pack(pady=10)
 
     # Leave To
     tk.Label(apply, text="Leave To (YYYY-MM-DD)", bg="white").pack(pady=(15, 4))
-    date_to_entry = tk.Entry(apply, width=32)
-    date_to_entry.pack(pady=5)
+    date_to_entry = tk.Entry(apply, width=35)
+    date_to_entry.pack(pady=10)
 
     # Purpose
     tk.Label(apply, text="Purpose", bg="white").pack(pady=(15, 4))
     purpose_entry = tk.Entry(apply, width=36,)
-    purpose_entry.pack(pady=5)
+    purpose_entry.pack(pady=10)
 
     # Leave Period
     tk.Label(apply, text="Leave Period", bg="white").pack(pady=(15, 2))
@@ -364,7 +364,7 @@ def apply_leave(attendance_window, username):
     ]
     period_combo = ttk.Combobox(apply, values=leave_period, state="readonly", width=30)
     period_combo.set("-- Select Leave Period --")
-    period_combo.pack(pady=5)
+    period_combo.pack(pady=10)
 
     def submit_leave():
         leave_type = leave_type_combo.get()
@@ -395,7 +395,7 @@ def apply_leave(attendance_window, username):
         apply.destroy()
         attendance_window.deiconify()
 
-    submit_button = tk.Button(apply, width=25, text="Submit", bg="#87CEEB", fg="white",
+    submit_button = tk.Button(apply, width=25, text="APPLY LEAVE", bg="#158B06", fg="white",
                               activebackground="#00BFFF", activeforeground="white", command=submit_leave)
     submit_button.pack(pady=10)
 
@@ -496,42 +496,42 @@ def feedback(main_window, username):
     # Name
     name_label = tk.Label(fb, text="Your Name", bg="white")
     name_label.pack(pady=(10, 2))
-    name_entry = tk.Entry(fb, width=32)
+    name_entry = tk.Entry(fb, width=35)
     name_entry.insert(0, username)
-    name_entry.pack(pady=5)
+    name_entry.pack(pady=10)
 
     # Department
     dept_label = tk.Label(fb, text="Department", bg="white")
     dept_label.pack(pady=(10, 2))
-    dept_entry = tk.Entry(fb, width=32)
-    dept_entry.pack(pady=5)
+    dept_entry = tk.Entry(fb, width=35)
+    dept_entry.pack(pady=10)
 
     # Experience Rating
     rating_label = tk.Label(fb, text="Overall Experience", bg="white")
     rating_label.pack(pady=(10, 2))
     ratings = ["Excellent", "Good", "Fair", "Poor"]
-    rating_combo = ttk.Combobox(fb, values=ratings, state="readonly", width=30)
+    rating_combo = ttk.Combobox(fb, values=ratings, state="readonly", width=35)
     rating_combo.set("-- Select Rating --")
-    rating_combo.pack(pady=5)
+    rating_combo.pack(pady=10)
 
     # Comments
     comments_label = tk.Label(fb, text="Comments / Suggestions", bg="white")
     comments_label.pack(pady=(10, 2))
     comments_entry = tk.Text(fb, width=32, height=5)
-    comments_entry.pack(pady=5)
+    comments_entry.pack(pady=10)
 
     # Contact Preference
     contact_label = tk.Label(fb, text="Would you like to be contacted?", bg="white")
     contact_label.pack(pady=(10, 2))
     contact_var = tk.StringVar()
-    contact_combo = ttk.Combobox(fb, values=["Yes", "No"], textvariable=contact_var, state="readonly", width=30)
+    contact_combo = ttk.Combobox(fb, values=["Yes", "No"], textvariable=contact_var, state="readonly", width=35)
     contact_combo.set("-- Select Option --")
-    contact_combo.pack(pady=5)
+    contact_combo.pack(pady=10)
 
     contact_info_label = tk.Label(fb, text="Email or Phone (if Yes)", bg="white")
     contact_info_label.pack(pady=(10, 2))
-    contact_info_entry = tk.Entry(fb, width=32)
-    contact_info_entry.pack(pady=5)
+    contact_info_entry = tk.Entry(fb, width=35)
+    contact_info_entry.pack(pady=10)
 
     # Submit Feedback
     def submit_feedback():
@@ -560,7 +560,7 @@ def feedback(main_window, username):
 
         print("Feedback submitted successfully!")
 
-    submit_btn = tk.Button(fb, text="Submit", width=25, bg="#87CEEB", fg="white",activebackground="#00BFFF", activeforeground="white",command=submit_feedback)
+    submit_btn = tk.Button(fb, text="SUBMIT", width=25, bg="#158B06", fg="white",activebackground="#158B06", activeforeground="white",command=submit_feedback)
     submit_btn.pack(pady=20)
 
     # Back Button
@@ -639,7 +639,7 @@ def open_window(change, username):
         updater.destroy()
         change.destroy()
 
-    tk.Button(updater, text="Submit", width=25, bg="#87CEEB", fg="white", activebackground="#00BFFF", activeforeground="white", command=save_updates).pack(pady=20)
+    tk.Button(updater, text="CHANGE PASSWORD", width=25, bg="#87CEEB", fg="white", activebackground="#00BFFF", activeforeground="white", command=save_updates).pack(pady=20)
     # Back Button
     back_btn = tk.Button(updater, text="Back", width=15, command=lambda: back(updater, change))
     back_btn.pack(pady=5)

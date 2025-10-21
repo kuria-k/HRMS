@@ -7,6 +7,7 @@ import shutil
 import sqlite3
 from tkinter import messagebox
 import hashlib
+from tkinter import font
 
 
 
@@ -195,7 +196,7 @@ def profile(dashboard_window):
     welcome_label.pack(pady=10)
 
     # Frame for table
-    table_frame = tk.Frame(prof, height=700)
+    table_frame = tk.Frame(prof, height=640)
     table_frame.pack(fill="x", padx=10, pady=(10, 0))
     table_frame.pack_propagate(False)
 
@@ -385,16 +386,13 @@ def create(dashboard_window):
 
     username_label = tk.Label(create_window, text="Username", pady=5)
     username_label.pack()
-    username_entry = tk.Entry(create_window, width=30)
-    username_entry.pack()
+    username_entry = tk.Entry(create_window, width=35,)
+    username_entry.pack(pady=20)
 
     password_label = tk.Label(create_window, text="Password", pady=5)
     password_label.pack()
-    password_entry = tk.Entry(create_window, show="*", width=30)
-    password_entry.pack()
-
-    back_button = tk.Button(create_window, text="Back", command=lambda: go_back(create_window, dashboard_window))
-    back_button.pack(pady=10)
+    password_entry = tk.Entry(create_window, show="*", width=35)
+    password_entry.pack(pady=20)
 
     # Create table if not exists
     conn = sqlite3.connect("datas.db")
@@ -430,13 +428,13 @@ def create(dashboard_window):
         dashboard_window.deiconify()
 
     # Submit button with correct command
-    submit_button = tk.Button(create_window, text="Submit", pady=10, width=15, bg="#87CEEB", fg="#FFFFFF", command=credentials)
-    submit_button.pack(pady=20)
+    submit_button = tk.Button(create_window, text="CREATE ACCOUNT", pady=10, padx=15, width=15, height=1 , bg="#158B06", fg="#FFFFFF", command=credentials )
+    submit_button.pack(pady=20, )
+
+    back_button = tk.Button(create_window, text="Back", command=lambda: go_back(create_window, dashboard_window))
+    back_button.pack(pady=10)
 
       
-
-
-
 
 def adding(dashboard_window):
     add_window = tk.Toplevel(logins)
@@ -449,23 +447,23 @@ def adding(dashboard_window):
 
     name_label = tk.Label(add_window, text="Name", pady=5)
     name_label.pack()
-    name_entry = tk.Entry(add_window, width=30)
-    name_entry.pack()
+    name_entry = tk.Entry(add_window, width=35)
+    name_entry.pack(pady=20)
 
     age_label = tk.Label(add_window, text="Age", pady=5)
     age_label.pack()
-    age_entry = tk.Entry(add_window, width=30)
-    age_entry.pack()
+    age_entry = tk.Entry(add_window, width=35)
+    age_entry.pack(pady=20)
 
     gender_label = tk.Label(add_window, text="Gender", pady=5)
     gender_label.pack()
-    gender_combo = ttk.Combobox(add_window, values=["Male", "Female"], width=30, state='readonly')
-    gender_combo.pack(pady=5)
+    gender_combo = ttk.Combobox(add_window, values=["Male", "Female"], width=35, state='readonly')
+    gender_combo.pack(pady=10)
 
     department_label = tk.Label(add_window, text="Department", pady=5)
     department_label.pack()
-    department_entry = tk.Entry(add_window, width=30)
-    department_entry.pack()
+    department_entry = tk.Entry(add_window, width=35)
+    department_entry.pack(pady=20)
 
     # Create table if not exists
     conn = sqlite3.connect("datas.db")
@@ -504,7 +502,7 @@ def adding(dashboard_window):
         dashboard_window.deiconify()
 
     #Submit button
-    submit_button = tk.Button(add_window, text="Submit", pady=10, width=15, bg="#87CEEB", fg="#FFFFFF", command=submit_data)
+    submit_button = tk.Button(add_window, text="ADD EMPLOYEE", pady=10, width=15, height=1,  bg="#158B06", fg="#FFFFFF", command=submit_data)
     submit_button.pack(pady=20)
 
     back_button = tk.Button(add_window, text="Back", command=lambda: go_back(add_window, dashboard_window))

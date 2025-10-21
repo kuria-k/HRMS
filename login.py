@@ -29,7 +29,7 @@ def login_user():
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
         #Validate credentials from credentials_data
-        conn = sqlite3.connect("data.db")
+        conn = sqlite3.connect("datas.db")
         cursor = conn.cursor()
         query = '''SELECT * FROM credentials_data WHERE Username = ? AND Password = ?'''
         cursor.execute(query, (username, hashed_password))
@@ -38,7 +38,7 @@ def login_user():
 
         if result:
             #Getting employee profile from student_data
-            conn = sqlite3.connect("data.db")
+            conn = sqlite3.connect("datas.db")
             cursor = conn.cursor()
             query = '''SELECT Name, Age, Gender, Department FROM student_data WHERE Name = ?'''
             cursor.execute(query, (username,))
@@ -48,7 +48,7 @@ def login_user():
             if profile_result:
                 employee_name, employee_age, employee_gender, employee_department = profile_result
                 messagebox.showinfo("Login Successful", f"Welcome, {employee_name}!")
-                open_employee_dashboard(employee_name, employee_age, employee_gender, employee_department)
+                open_employee_dashboard(employee_name, employee_age, employee_gender, employee_department,password)
             else:
                 messagebox.showerror("Profile Error", "Employee profile not found.")
         else:

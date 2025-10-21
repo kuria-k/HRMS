@@ -4,6 +4,7 @@ from tkinter import messagebox
 from datetime import datetime
 from main import logins
 import sqlite3
+import hashlib
 
 
 
@@ -23,7 +24,7 @@ def back(current_window, previous_window):
 def clockin(attendance_window, username, previous_window):
     clock = tk.Toplevel(attendance_window)
     clock.title("Checkin")
-    clock.geometry("350x460")
+    clock.geometry("1920x1080")
     attendance_window.withdraw()
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -48,7 +49,7 @@ def clockin(attendance_window, username, previous_window):
 def clockout(attendance_window, username, previous_window):
     clock = tk.Toplevel(attendance_window)
     clock.title("Checkout")
-    clock.geometry("350x460")
+    clock.geometry("1920x1080")
     attendance_window.withdraw()
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -88,7 +89,7 @@ def clockout(attendance_window, username, previous_window):
 def review(attendance_window, username):
     view = tk.Toplevel(attendance_window)
     view.title("Attendance Review")
-    view.geometry("450x400")
+    view.geometry("1920x1080")
     attendance_window.withdraw()
 
     # Title
@@ -141,7 +142,7 @@ def review(attendance_window, username):
 def contact(attendance_window, username):
     info = tk.Toplevel(attendance_window)
     info.title("Contact")
-    info.geometry("350x460")
+    info.geometry("1920x1080")
     attendance_window.withdraw()
 
     # Create table
@@ -227,7 +228,7 @@ def contact(attendance_window, username):
 def attendance(dashboard_window, employee_name,):
     attend = tk.Toplevel(dashboard_window)
     attend.title("Attendance")
-    attend.geometry("350x460")
+    attend.geometry("1920x1080")
     dashboard_window.withdraw()
 
 
@@ -250,13 +251,13 @@ def attendance(dashboard_window, employee_name,):
     review_button = tk.Button(attend, text="Review attendance", command=lambda: review(attend, employee_name))
     review_button.pack(pady=25)
 
-    back_button = tk.Button(attend, text="Back", command=lambda: confirmation(attend, dashboard_window))
+    back_button = tk.Button(attend, text="Back", command=lambda: back(attend, dashboard_window))
     back_button.pack(pady=20)
 
 def profile(dashboard_window, employee_name, employee_age, employee_gender, employee_department):
     prof = tk.Toplevel(dashboard_window)
     prof.title("Profile")
-    prof.geometry("360x300")
+    prof.geometry("1920x1080")
     prof.configure(bg="white")
     dashboard_window.withdraw()
 
@@ -293,7 +294,7 @@ def profile(dashboard_window, employee_name, employee_age, employee_gender, empl
 def apply_leave(attendance_window, username):
     apply = tk.Toplevel(attendance_window)
     apply.title("Leave Application")
-    apply.geometry("360x500")
+    apply.geometry("1920x1080")
     apply.configure(bg="white")
     attendance_window.withdraw()
 
@@ -376,7 +377,7 @@ def apply_leave(attendance_window, username):
 def leave_review(attendance_window, username):
     reviews = tk.Toplevel(attendance_window)
     reviews.title("Leave Review")
-    reviews.geometry("900x500")
+    reviews.geometry("1920x1080")
     attendance_window.withdraw()
 
     conn = sqlite3.connect("datas.db")
@@ -416,7 +417,7 @@ def leave_review(attendance_window, username):
 def leaves(attendance_window, username):
     apply = tk.Toplevel(attendance_window)
     apply.title("Leave Application")
-    apply.geometry("360x500")
+    apply.geometry("1920x1080")
     apply.configure(bg="white")
     attendance_window.withdraw()
 
@@ -440,7 +441,7 @@ def leaves(attendance_window, username):
 def feedback(main_window, username):
     fb = tk.Toplevel(main_window)
     fb.title("Feedback Form")
-    fb.geometry("360x520")
+    fb.geometry("1920x1080")
     fb.configure(bg="white")
     main_window.withdraw()
 
@@ -523,11 +524,91 @@ def feedback(main_window, username):
     back_btn.pack(pady=5)
 
 
+
+def passwords(attendance_window, username, password):
+    change = tk.Toplevel(attendance_window)
+    change.title("Change Password")
+    change.geometry("1920x1080")
+    attendance_window.withdraw()
+
+    conn = sqlite3.connect("datas.db")
+    cursor = conn.cursor()
+    query = '''SELECT Password FROM credentials_data WHERE Username = ?'''
+    cursor.execute(query, (username,))
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        stored_password_hash = result[0]
+        entered_password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+        if entered_password_hash == stored_password_hash:
+            print("Credentials verified")
+            open_window(change, username) 
+        else:
+            print("Invalid password")
+            messagebox.showerror("Error", "Incorrect current password.")
+            change.destroy()
+    else:
+        print("Username not found")
+        messagebox.showerror("Error", "Username not found.")
+        change.destroy()
+
+def open_window(attendance_window, username):
+    updater = tk.Toplevel(attendance_window)
+    updater.title("Set New Password")
+    updater.geometry("1366x768")
+    
+    tk.Label(updater, text=f"Logged in as {username}").pack()
+    tk.Label(updater, text="Enter New Password", font=("Arial", 12)).pack(pady=10)
+
+    password_entry = tk.Entry(updater, width=40, show="*")
+    password_entry.pack(pady=10)
+
+    tk.Label(updater, text="Confirm New Password", font=("Arial", 12)).pack(pady=10)
+    confirm_entry = tk.Entry(updater, width=40, show="*")
+    confirm_entry.pack(pady=10)
+
+    def save_updates():
+        new_password = password_entry.get()
+        confirm_password = confirm_entry.get()
+        
+
+        if not new_password or not confirm_password:
+            messagebox.showwarning("Input Error", "Both fields are required.")
+            return
+
+        if new_password != confirm_password:
+            messagebox.showerror("Mismatch", "Passwords do not match.")
+            return
+
+        new_password_hash = hashlib.sha256(new_password.encode('utf-8')).hexdigest()
+
+        conn = sqlite3.connect("datas.db")
+        cursor = conn.cursor()
+        query = '''UPDATE credentials_data SET Password = ? WHERE Username = ?'''
+        cursor.execute(query, (new_password_hash, username))
+        conn.commit()
+        conn.close()
+
+        messagebox.showinfo("Success", "Password successfully changed.")
+        updater.destroy()
+        attendance_window.destroy()
+
+    tk.Button(updater, text="Submit", width=25, bg="#87CEEB", fg="white", activebackground="#00BFFF", activeforeground="white", command=save_updates).pack(pady=20)
+    # Back Button
+    back_btn = tk.Button(updater, text="Back", width=15, command=lambda: back(updater, attendance_window))
+    back_btn.pack(pady=5)
+
+
+
+
+
 # Function to open employee dashboard
-def open_employee_dashboard(employee_name, employee_age, employee_gender, employee_department):
+def open_employee_dashboard(employee_name, employee_age, employee_gender, employee_department, password):
     dashboard = tk.Toplevel(logins)
     dashboard.title("Employee Dashboard")
-    dashboard.geometry("350x450")
+    dashboard.geometry("1920x1080")
     logins.withdraw()
 
     welcome_label = tk.Label(dashboard, text="Welcome to the Employee Dashboard!", font=("Arial", 14))
@@ -553,6 +634,9 @@ def open_employee_dashboard(employee_name, employee_age, employee_gender, employ
 
     contact_button = tk.Button(dashboard, text="CONTACT INFO", command=lambda: contact(dashboard, employee_name))
     contact_button.pack(pady=10)
+
+    change_pass_button = tk.Button(dashboard, text="CHANGE PASSWORD", command=lambda: passwords(dashboard, employee_name, password))
+    change_pass_button.pack(pady=10)
 
 
     back_button = tk.Button(dashboard, text="Logout", command=lambda: confirmation(dashboard, logins))

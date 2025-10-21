@@ -235,14 +235,16 @@ def profile(dashboard_window):
         if not selected:
             messagebox.showerror("Error", "Please select an employee to delete.")
             return
-        emp_id = tree.item(selected)["values"][0]
-        conn = sqlite3.connect("datas.db")
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM student_data WHERE id=?", (emp_id,))
-        conn.commit()
-        conn.close()
-        tree.delete(selected)
-        messagebox.showinfo("Deleted", "Employee record deleted.")
+        confirm = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete the employee?")
+        if confirm: 
+         emp_id = tree.item(selected)["values"][0]
+         conn = sqlite3.connect("datas.db")
+         cursor = conn.cursor()
+         cursor.execute("DELETE FROM student_data WHERE id=?", (emp_id,))
+         conn.commit()
+         conn.close()
+         tree.delete(selected)
+         messagebox.showinfo("Deleted", "Employee record deleted.")
 
     # Update selected employee
     def update_employee():
@@ -294,18 +296,20 @@ def profile(dashboard_window):
             except ValueError:
                 messagebox.showerror("Error", "Age must be a number.")
                 return
-
-            conn = sqlite3.connect("datas.db")
-            cursor = conn.cursor()
-            cursor.execute('''UPDATE student_data SET Name=?, Age=?, Gender=?, Department=? WHERE id=?''',
+            confirm =  messagebox.askyesno("Confirm update", "Are you sure you want to update the employee?")
+            if confirm:
+             conn = sqlite3.connect("datas.db")
+             cursor = conn.cursor()
+             cursor.execute('''UPDATE student_data SET Name=?, Age=?, Gender=?, Department=? WHERE id=?''',
                            (new_name, new_age, new_gender, new_department, emp_id))
-            conn.commit()
-            conn.close()
-
-            messagebox.showinfo("Success", "Employee updated successfully!")
-            update_win.destroy()
-            prof.destroy()
-            profile(dashboard_window) 
+             conn.commit()
+             conn.close()
+             messagebox.showinfo("Success", "Employee updated successfully!")
+             update_win.destroy()
+             prof.destroy()
+             profile(dashboard_window)
+            else:
+                update_win.destroy() 
 
         tk.Button(update_win, text="Save",bg="#87CEEB", fg="white", command=save_update).pack(pady=20)
 

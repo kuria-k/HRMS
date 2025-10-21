@@ -96,6 +96,10 @@ def review(attendance_window, username):
     title_label = tk.Label(view, text=f"Attendance for {username}", font=("Arial", 16, "bold"))
     title_label.pack(pady=10)
 
+    # Back button
+    back_button = tk.Button(view, text="Back", width=15, command=lambda: back(view, attendance_window))
+    back_button.pack(pady=10)
+
     # Frame for table
     table_frame = tk.Frame(view)
     table_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -132,9 +136,9 @@ def review(attendance_window, username):
     for record in records:
         tree.insert("", "end", values=record)
 
-    # Back button
-    back_button = tk.Button(view, text="Back", width=15, command=lambda: back(view, attendance_window))
-    back_button.pack(pady=10)
+    # # Back button
+    # back_button = tk.Button(view, text="Back", width=15, command=lambda: back(view, attendance_window))
+    # back_button.pack(pady=10)
 
 
 
@@ -526,9 +530,9 @@ def feedback(main_window, username):
 
 
 def passwords(attendance_window, username, password):
-    change = tk.Toplevel(attendance_window)
-    change.title("Change Password")
-    change.geometry("1920x1080")
+    # change = tk.Toplevel(attendance_window)
+    # change.title("Change Password")
+    # change.geometry("1920x1080")
     attendance_window.withdraw()
 
     conn = sqlite3.connect("datas.db")
@@ -544,18 +548,18 @@ def passwords(attendance_window, username, password):
 
         if entered_password_hash == stored_password_hash:
             print("Credentials verified")
-            open_window(change, username) 
+            open_window(attendance_window, username) 
         else:
             print("Invalid password")
             messagebox.showerror("Error", "Incorrect current password.")
-            change.destroy()
+            attendance_window.destroy()
     else:
         print("Username not found")
         messagebox.showerror("Error", "Username not found.")
-        change.destroy()
+        attendance_window.destroy()
 
-def open_window(attendance_window, username):
-    updater = tk.Toplevel(attendance_window)
+def open_window(change, username):
+    updater = tk.Toplevel(change)
     updater.title("Set New Password")
     updater.geometry("1366x768")
     
@@ -593,11 +597,11 @@ def open_window(attendance_window, username):
 
         messagebox.showinfo("Success", "Password successfully changed.")
         updater.destroy()
-        attendance_window.destroy()
+        change.destroy()
 
     tk.Button(updater, text="Submit", width=25, bg="#87CEEB", fg="white", activebackground="#00BFFF", activeforeground="white", command=save_updates).pack(pady=20)
     # Back Button
-    back_btn = tk.Button(updater, text="Back", width=15, command=lambda: back(updater, attendance_window))
+    back_btn = tk.Button(updater, text="Back", width=15, command=lambda: back(updater, change))
     back_btn.pack(pady=5)
 
 

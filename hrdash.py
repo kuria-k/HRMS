@@ -24,7 +24,7 @@ def confirmation(current_window, previous_window):
 def review(attendance_window, username):
     view = tk.Toplevel(attendance_window)
     view.title("Attendance Review")
-    view.geometry("450x400")
+    view.geometry("1925x1085")
     attendance_window.withdraw()
 
     # Title
@@ -76,7 +76,7 @@ def review(attendance_window, username):
 def leave(attendance_window, username):
     application = tk.Toplevel(attendance_window)
     application.title("Attendance Review")
-    application.geometry("700x450")
+    application.geometry("1925x1085")
     attendance_window.withdraw()
 
     # Temporary in-memory status tracker
@@ -185,7 +185,7 @@ def leave(attendance_window, username):
 def profile(dashboard_window):
     prof = tk.Toplevel(dashboard_window)
     prof.title("Employee Profiles")
-    prof.geometry("600x450")
+    prof.geometry("1925x1085")
     prof.configure(bg="white")
     dashboard_window.withdraw()
 
@@ -259,7 +259,7 @@ def profile(dashboard_window):
     def open_update_window(emp_data):
         update_win = tk.Toplevel(prof)
         update_win.title("Update Employee")
-        update_win.geometry("350x400")
+        update_win.geometry("1925x1085")
 
         emp_id, name, age, gender, department = emp_data
 
@@ -326,7 +326,7 @@ def profile(dashboard_window):
 def memo(dashboard_window):
     memo_window = tk.Toplevel(logins)
     memo_window.title("Upload Memo")
-    memo_window.geometry("400x500")
+    memo_window.geometry("1925x1085")
     dashboard_window.withdraw()
 
     title_label = tk.Label(memo_window, text="Upload a PDF Memo File", font=("Arial", 14))
@@ -368,7 +368,7 @@ def memo(dashboard_window):
 def create(dashboard_window):
     create_window = tk.Toplevel(logins)
     create_window.title("Create Credentials")
-    create_window.geometry("350x450")
+    create_window.geometry("1925x1085")
     dashboard_window.withdraw()
 
     welcome_label = tk.Label(create_window, text="Add Employee Credentials", font=("Arial", 14))
@@ -432,7 +432,7 @@ def create(dashboard_window):
 def adding(dashboard_window):
     add_window = tk.Toplevel(logins)
     add_window.title("Add Employee")
-    add_window.geometry("350x450")
+    add_window.geometry("1925x1085")
     dashboard_window.withdraw()
 
     welcome_label = tk.Label(add_window, text="Add Employee Details", font=("Arial", 14))
@@ -508,7 +508,7 @@ def adding(dashboard_window):
 def open_dashboard(username):
     dashboard = tk.Toplevel(logins)
     dashboard.title("HR Dashboard")
-    dashboard.geometry("350x450")
+    dashboard.geometry("1925x1085")
     logins.withdraw()
 
     welcome_label = tk.Label(dashboard, text="Welcome to the HR Dashboard!", font=("Arial", 14))
